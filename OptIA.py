@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import random
+import sobol_seq
 import numpy as np
 import copy
 import cell
@@ -8,13 +9,14 @@ import cell
 
 class OptIA:
     MAX_GENERATION = 10000
-    MAX_POP = 50
+    MAX_POP = 20
     MAX_AGE = 6
     DIMENSION = None
     LBOUNDS = None
     UBOUNDS = None
     fun = None
     evalcount = 0
+    generation = 0
 
     GENOTYPE_DUP = True
 
@@ -31,26 +33,28 @@ class OptIA:
         self.pop.clear()
         self.clo_pop.clear()
         self.hyp_pop.clear()
-        for i in range(OptIA.MAX_POP):
 
             #coordinates = np.random.uniform(OptIA.LBOUNDS, OptIA.UBOUNDS,
                                   #OptIA.DIMENSION)
             #coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
             #              np.random.rand(1, self.DIMENSION)
+        coordinates = sobol_seq.i4_sobol_generate(self.DIMENSION, OptIA.MAX_POP)
 
 # TODO inplement eval
 # TODO modify generation phase
+        for coordinate in coordinates:
             val = None
-            self.evalcount += 1
             if self.fun.number_of_constraints > 0:
-                c = self.fun.constraints(coordinates[0])
+                c = self.fun.constraints(coordinate)
                 if c <= 0:
-                    val = self.fun(coordinates[0])
+                    val = self.fun(coordinate)
+                    self.evalcount += 1
             else:
-                #print(coordinates[0])
-                val = self.fun(coordinates[0])
-            print("Initial eval:",val)
-            self.pop.append(cell.Cell(coordinates[0].copy(), val.copy(), 0))
+                #print(coordinate)
+                val = self.fun(coordinate)
+                self.evalcount += 1
+            #print("Initial eval:", val)
+            self.pop.append(cell.Cell(coordinate.copy(), val.copy(), 0))
 
     def clone(self, dup):
         self.clo_pop.clear()
@@ -64,8 +68,18 @@ class OptIA:
     def hyper_mutate(self):
         self.hyp_pop.clear()
         for original in self.clo_pop:
-            mutated_coordinates = original.get_coordinates() + (
-                    self.UBOUNDS - self.LBOUNDS)/10000.0 * random.gauss(0, 1)
+            mutated_coordinates = None
+            for d in range(self.DIMENSION):
+                val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
+                                                 self.LBOUNDS[d])/100.0 * \
+                random.gauss(0, 1)
+                mutated_coordinates = np.append(mutated_coordinates, val)
+
+            #mutated_coordinates = original.get_coordinates() + (
+                    #self.UBOUNDS - self.LBOUNDS)/100.0 * random.gauss(0, 1)
+            mutated_coordinates = np.delete(mutated_coordinates, 0)
+            #print("original", original.get_coordinates())
+            #print("mutated", mutated_coordinates)
             # TODO Confirm comparing multiple dimension elements
             if (mutated_coordinates < self.LBOUNDS).all():
                 mutated_coordinates = self.LBOUNDS
@@ -77,7 +91,7 @@ class OptIA:
             mutated_val = 0
 
     # TODO implement eval
-            print("Coordinates: ",mutated_coordinates)
+            #print("Coordinates: ",mutated_coordinates)
             self.evalcount += 1
             if self.fun.number_of_constraints > 0:
                 c = self.fun.constraints(mutated_coordinates)
@@ -116,8 +130,12 @@ class OptIA:
         while self.MAX_POP < len(self.pop):
             worst = self.pop[0]
             for c in self.pop:
+                #print("pre worst val is ", worst.get_val())
+                #print("pre c val is ", c.get_val())
                 if np.amin(worst.get_val()) < np.amin(c.get_val()):
                     worst = c
+                #print("worst val is ", worst.get_val())
+                #print("c val is ", c.get_val())
             self.pop.remove(worst)
 
         while self.MAX_POP > len(self.pop):
@@ -143,23 +161,32 @@ class OptIA:
             #print("t", t)
             #chunk = int(max([1, min([budget, max_chunk_size])]))
             chunk = self.MAX_POP
+            #for c in self.pop:
+                #print("before clone", c.get_val())
             self.clone(2)
             self.hyper_mutate()
             self.hybrid_age()
+            #for c in self.hyp_pop:
+                #print("before select hyp_pop", c.get_val())
             self.select()
+            #for c in self.pop:
+                #print("after select", c.get_val())
             best = self.pop[0]
             for c in self.pop:
                 if np.amin(c.get_val()) < np.amin(best.get_val()):
                     best = c
-
-            print("best is", best.get_val())
-            print("total pop is", len(self.pop))
-            print("total hyp_pop is", len(self.hyp_pop))
-            print("total clo_pop is", len(self.clo_pop))
+            best.reset_age()
+            #print("best is", best.get_val())
+            #print("total pop is", len(self.pop))
+            #print("total hyp_pop is", len(self.hyp_pop))
+            #print("total clo_pop is", len(self.clo_pop))
             chunk = self.evalcount
             budget -= chunk
-            print("remaining budget ",budget)
+            #print("remaining budget ",budget)
             t +=1
+            self.generation += 1
+            #print("generation", self.generation)
+            #print(best.get_coordinates())
         return best.get_coordinates()
 
 if __name__ == '__main__':

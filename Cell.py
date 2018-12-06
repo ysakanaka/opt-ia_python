@@ -42,4 +42,7 @@ class Cell:
     def add_age(self):
         self.age += 1
 
+    def reset_age(self):
+        self.age = 0
+
 
