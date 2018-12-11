@@ -6,10 +6,13 @@ import numpy as np
 import copy
 import cell
 
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
+
 
 class OptIA:
     MAX_GENERATION = 10000
-    MAX_POP = 20
+    MAX_POP = 10
     MAX_AGE = 6
     DIMENSION = None
     LBOUNDS = None
@@ -19,10 +22,13 @@ class OptIA:
     generation = 0
 
     GENOTYPE_DUP = True
+    SAIL = True
 
     pop = []
     clo_pop = []
     hyp_pop = []
+    kernel = C(1.0, (1e-3, 1e3) * RBF(10, (1e-2, 1e2)))
+    gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9)
 
     def __init__(self, fun, lbounds, ubounds):
         self.fun = fun
@@ -33,6 +39,8 @@ class OptIA:
         self.pop.clear()
         self.clo_pop.clear()
         self.hyp_pop.clear()
+
+
 
             #coordinates = np.random.uniform(OptIA.LBOUNDS, OptIA.UBOUNDS,
                                   #OptIA.DIMENSION)
@@ -67,6 +75,39 @@ class OptIA:
 
     def hyper_mutate(self):
         self.hyp_pop.clear()
+        original_coordinates = None
+        original_val = None
+        for original in self.clo_pop:
+            original_coordinates = np.append(original_coordinates,
+                                             original.get_coordinates())
+            original_val = np.append(original_val, original.get_val())
+        original_coordinates = np.delete(original_coordinates, 0)
+        original_val = np.delete(original_val, 0)
+        x = np.atleast_2d(self.LBOUNDS, self.UBOUNDS, 1000)
+        self.gp.fit(original_coordinates, original_val)
+        y_pred, sigma = self.gp.predict(x, return_std=True)
+
+            mutated_coordinates = None
+            for d in range(self.DIMENSION):
+                val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
+                                                 self.LBOUNDS[d])/100.0 * \
+                random.gauss(0, 1)
+                mutated_coordinates = np.append(mutated_coordinates, val)
+
+            mutated_coordinates = np.delete(mutated_coordinates, 0)
+            #print("original", original.get_coordinates())
+            #print("mutated", mutated_coordinates)
+            # TODO Confirm comparing multiple dimension elements
+            if (mutated_coordinates < self.LBOUNDS).all():
+                mutated_coordinates = self.LBOUNDS
+                print("error")
+            elif (mutated_coordinates > self.UBOUNDS).all():
+                print("error")
+                mutated_coordinates = self.UBOUNDS
+
+            mutated_val = 0
+
+
         for original in self.clo_pop:
             mutated_coordinates = None
             for d in range(self.DIMENSION):
@@ -75,8 +116,6 @@ class OptIA:
                 random.gauss(0, 1)
                 mutated_coordinates = np.append(mutated_coordinates, val)
 
-            #mutated_coordinates = original.get_coordinates() + (
-                    #self.UBOUNDS - self.LBOUNDS)/100.0 * random.gauss(0, 1)
             mutated_coordinates = np.delete(mutated_coordinates, 0)
             #print("original", original.get_coordinates())
             #print("mutated", mutated_coordinates)
