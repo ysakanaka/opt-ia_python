@@ -4,7 +4,7 @@ import random
 import sobol_seq
 import numpy as np
 import copy
-import Cell as cell
+import cell
 
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
