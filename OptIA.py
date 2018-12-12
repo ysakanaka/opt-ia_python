@@ -4,7 +4,7 @@ import random
 import sobol_seq
 import numpy as np
 import copy
-import cell
+import Cell as cell
 
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
@@ -48,7 +48,6 @@ class OptIA:
             #              np.random.rand(1, self.DIMENSION)
         coordinates = sobol_seq.i4_sobol_generate(self.DIMENSION, OptIA.MAX_POP)
 
-# TODO inplement eval
 # TODO modify generation phase
         for coordinate in coordinates:
             val = None
@@ -75,79 +74,69 @@ class OptIA:
 
     def hyper_mutate(self):
         self.hyp_pop.clear()
+        mutated_coordinates = None
         original_coordinates = None
-        original_val = None
+        original_vals = None
         for original in self.clo_pop:
+            mutated_coordinate = None
+            for d in range(self.DIMENSION):
+                val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
+                                                 self.LBOUNDS[d])/100.0 * \
+                random.gauss(0, 1)
+                mutated_coordinate = np.append(mutated_coordinate, val)
+
+            mutated_coordinate = np.delete(mutated_coordinate, 0)
+            #print("original", original.get_coordinates())
+            #print("mutated", mutated_coordinates)
+            if (mutated_coordinate < self.LBOUNDS).all():
+                mutated_coordinate = self.LBOUNDS
+                print("error")
+            elif (mutated_coordinate > self.UBOUNDS).all():
+                print("error")
+                mutated_coordinate = self.UBOUNDS
+            mutated_coordinates = np.append(mutated_coordinates, mutated_coordinate)
             original_coordinates = np.append(original_coordinates,
                                              original.get_coordinates())
-            original_val = np.append(original_val, original.get_val())
+            original_vals = np.append(original_vals, original.get_val())
+
+        mutated_coordinates = np.delete(mutated_coordinates, 0)
         original_coordinates = np.delete(original_coordinates, 0)
-        original_val = np.delete(original_val, 0)
-        x = np.atleast_2d(self.LBOUNDS, self.UBOUNDS, 1000)
-        self.gp.fit(original_coordinates, original_val)
-        y_pred, sigma = self.gp.predict(x, return_std=True)
+        original_vals = np.delete(original_vals, 0)
 
-            mutated_coordinates = None
-            for d in range(self.DIMENSION):
-                val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
-                                                 self.LBOUNDS[d])/100.0 * \
-                random.gauss(0, 1)
-                mutated_coordinates = np.append(mutated_coordinates, val)
+        self.gp.fit(original_coordinates, original_vals)
+        vals_pred, sigma = self.gp.predict(mutated_coordinates,
+                                           return_std=True)
 
-            mutated_coordinates = np.delete(mutated_coordinates, 0)
-            #print("original", original.get_coordinates())
-            #print("mutated", mutated_coordinates)
-            # TODO Confirm comparing multiple dimension elements
-            if (mutated_coordinates < self.LBOUNDS).all():
-                mutated_coordinates = self.LBOUNDS
-                print("error")
-            elif (mutated_coordinates > self.UBOUNDS).all():
-                print("error")
-                mutated_coordinates = self.UBOUNDS
+        average = np.average(original_vals)
 
-            mutated_val = 0
+        mutated_val = 0
+        for val_pred, mutated_coordinate, original in vals_pred, \
+                mutated_coordinates, self.clo_pop:
+            if average - np.amin(vals_pred) > 0.1: # good
+                if self.fun.number_of_constraints > 0:
+                    c = self.fun.constraints(mutated_coordinate)
+                    if c <= 0:
+                        self.evalcount += 1
+                        mutated_val = self.fun(mutated_coordinate)
+                else:
+                    self.evalcount += 1
+                    mutated_val = self.fun(mutated_coordinate)
 
-
-        for original in self.clo_pop:
-            mutated_coordinates = None
-            for d in range(self.DIMENSION):
-                val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
-                                                 self.LBOUNDS[d])/100.0 * \
-                random.gauss(0, 1)
-                mutated_coordinates = np.append(mutated_coordinates, val)
-
-            mutated_coordinates = np.delete(mutated_coordinates, 0)
-            #print("original", original.get_coordinates())
-            #print("mutated", mutated_coordinates)
-            # TODO Confirm comparing multiple dimension elements
-            if (mutated_coordinates < self.LBOUNDS).all():
-                mutated_coordinates = self.LBOUNDS
-                print("error")
-            elif (mutated_coordinates > self.UBOUNDS).all():
-                print("error")
-                mutated_coordinates = self.UBOUNDS
-
-            mutated_val = 0
-
-    # TODO implement eval
-            #print("Coordinates: ",mutated_coordinates)
-            self.evalcount += 1
-            if self.fun.number_of_constraints > 0:
-                c = self.fun.constraints(mutated_coordinates)
-                if c <= 0:
-                    mutated_val = self.fun(mutated_coordinates)
+                if np.amin(mutated_val) < np.amin(original.get_val()):
+                    self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
+                                                  mutated_val.copy(), 0))
+                else:
+                    self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
+                                                  mutated_val.copy(),
+                                                  original.get_age()))
             else:
-                mutated_val = self.fun(mutated_coordinates)
-
-            #print("mutated val is", mutated_val)
-            #print("mutated coordinates is", mutated_coordinates)
-            if np.amin(mutated_val) < np.amin(original.get_val()):
-                self.hyp_pop.append(cell.Cell(mutated_coordinates.copy(),
-                                              mutated_val.copy(), 0))
-            else:
-                self.hyp_pop.append(cell.Cell(mutated_coordinates.copy(),
-                                              mutated_val.copy(),
-                                              original.get_age()))
+                if np.amin(val_pred) < np.amin(original.get_val()):
+                    self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
+                                                  val_pred.copy(), 0))
+                else:
+                    self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
+                                                  val_pred.copy(),
+                                                  original.get_age()))
 
     def hybrid_age(self):
         for c in self.pop:
@@ -180,7 +169,6 @@ class OptIA:
         while self.MAX_POP > len(self.pop):
             coordinates = OptIA.LBOUNDS + (OptIA.UBOUNDS - OptIA.LBOUNDS) * \
                           np.random.rand(1, OptIA.DIMENSION)
-            # TODO inplement eval
             val = None
             if self.fun.number_of_constraints > 0:
                 c = self.fun.constraints(coordinates)
