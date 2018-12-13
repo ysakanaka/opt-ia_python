@@ -27,8 +27,8 @@ class OptIA:
     pop = []
     clo_pop = []
     hyp_pop = []
-    kernel = C(1.0, (1e-3, 1e3) * RBF(10, (1e-2, 1e2)))
-    gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=9)
+    #kernel = C(1.0, (1e-3, 1e3) * RBF(10, (1e-2, 1e2)))
+    gp = GaussianProcessRegressor()
 
     def __init__(self, fun, lbounds, ubounds):
         self.fun = fun
@@ -74,18 +74,22 @@ class OptIA:
 
     def hyper_mutate(self):
         self.hyp_pop.clear()
-        mutated_coordinates = None
-        original_coordinates = None
-        original_vals = None
+        mutated_coordinates = []
+        original_coordinates = []
+        original_vals = []
         for original in self.clo_pop:
-            mutated_coordinate = None
-            for d in range(self.DIMENSION):
-                val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
-                                                 self.LBOUNDS[d])/100.0 * \
-                random.gauss(0, 1)
-                mutated_coordinate = np.append(mutated_coordinate, val)
+            mutated_coordinate = []
+            mutated_coordinate = np.array([original.get_coordinates()[d] +  (self.UBOUNDS[d] -
+                                                   self.LBOUNDS[d])/100.0 *
+                                           random.gauss(0, 1) for d in
+                                           range(self.DIMENSION)])
+            #for d in range(self.DIMENSION):
+            #    val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
+            #                                     self.LBOUNDS[d])/100.0 * \
+            #    random.gauss(0, 1)
+            #    mutated_coordinate = np.append(mutated_coordinate, val)
 
-            mutated_coordinate = np.delete(mutated_coordinate, 0)
+            #mutated_coordinate = np.delete(mutated_coordinate, 0)
             #print("original", original.get_coordinates())
             #print("mutated", mutated_coordinates)
             if (mutated_coordinate < self.LBOUNDS).all():
@@ -94,24 +98,49 @@ class OptIA:
             elif (mutated_coordinate > self.UBOUNDS).all():
                 print("error")
                 mutated_coordinate = self.UBOUNDS
-            mutated_coordinates = np.append(mutated_coordinates, mutated_coordinate)
-            original_coordinates = np.append(original_coordinates,
-                                             original.get_coordinates())
-            original_vals = np.append(original_vals, original.get_val())
 
-        mutated_coordinates = np.delete(mutated_coordinates, 0)
-        original_coordinates = np.delete(original_coordinates, 0)
-        original_vals = np.delete(original_vals, 0)
+
+            mutated_coordinates += [list(mutated_coordinate.copy())]
+
+            #print(mutated_coordinates)
+            original_coordinates +=  [list(original.get_coordinates(
+
+            ).copy())]
+            #np.append(original_coordinates,
+                                   #          np.array(
+            #          original.get_coordinates(
+
+                                           #  ).copy()).T)
+            original_vals = np.append(original_vals,
+                                      original.get_val())
+
+        print(original_coordinates)
+        print(original_vals)
+        #original_coordinates = np.delete(original_coordinates, 0)
+        original_coordinates = np.array(original_coordinates)
+        original_coordinates = np.atleast_2d(original_coordinates)
+        mutated_coordinates = np.atleast_2d(np.array(mutated_coordinates))
+        print(original_coordinates.shape)
+
+
+        original_vals = original_vals
+        print(original_vals.shape)
+
+
 
         self.gp.fit(original_coordinates, original_vals)
         vals_pred, sigma = self.gp.predict(mutated_coordinates,
                                            return_std=True)
 
+
+        print(vals_pred)
+        print(zip(mutated_coordinates.T))
+        print(self.clo_pop)
         average = np.average(original_vals)
 
         mutated_val = 0
         for val_pred, mutated_coordinate, original in vals_pred, \
-                mutated_coordinates, self.clo_pop:
+                zip(mutated_coordinates.T), self.clo_pop:
             if average - np.amin(vals_pred) > 0.1: # good
                 if self.fun.number_of_constraints > 0:
                     c = self.fun.constraints(mutated_coordinate)
