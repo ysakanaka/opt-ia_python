@@ -12,7 +12,7 @@ from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 
 class OptIA:
     MAX_GENERATION = 10000
-    MAX_POP = 10
+    MAX_POP = 20
     MAX_AGE = 6
     DIMENSION = None
     LBOUNDS = None
@@ -74,6 +74,7 @@ class OptIA:
 
     def hyper_mutate(self):
         self.hyp_pop.clear()
+        np_mutated_coordinates = None
         mutated_coordinates = []
         original_coordinates = []
         original_vals = []
@@ -89,7 +90,7 @@ class OptIA:
             #    random.gauss(0, 1)
             #    mutated_coordinate = np.append(mutated_coordinate, val)
 
-            #mutated_coordinate = np.delete(mutated_coordinate, 0)
+            # mutated_coordinate = np.delete(mutated_coordinate, 0)
             #print("original", original.get_coordinates())
             #print("mutated", mutated_coordinates)
             if (mutated_coordinate < self.LBOUNDS).all():
@@ -101,7 +102,8 @@ class OptIA:
 
 
             mutated_coordinates += [list(mutated_coordinate.copy())]
-
+            np_mutated_coordinates = np.append(np_mutated_coordinates,
+                                            mutated_coordinate.copy())
             #print(mutated_coordinates)
             original_coordinates +=  [list(original.get_coordinates(
 
@@ -114,17 +116,18 @@ class OptIA:
             original_vals = np.append(original_vals,
                                       original.get_val())
 
-        print(original_coordinates)
-        print(original_vals)
+        #print(original_coordinates)
+        #print(original_vals)
         #original_coordinates = np.delete(original_coordinates, 0)
         original_coordinates = np.array(original_coordinates)
         original_coordinates = np.atleast_2d(original_coordinates)
         mutated_coordinates = np.atleast_2d(np.array(mutated_coordinates))
-        print(original_coordinates.shape)
+        pre_mutated_coordinates = np.delete(np_mutated_coordinates, 0)
+        #print(original_coordinates.shape)
 
 
         original_vals = original_vals
-        print(original_vals.shape)
+        #print(original_vals.shape)
 
 
 
@@ -133,15 +136,17 @@ class OptIA:
                                            return_std=True)
 
 
-        print(vals_pred)
-        print(zip(mutated_coordinates.T))
-        print(self.clo_pop)
+        #print(vals_pred)
+        #print(mutated_coordinates)
+        #print(self.clo_pop)
+
         average = np.average(original_vals)
 
         mutated_val = 0
-        for val_pred, mutated_coordinate, original in vals_pred, \
-                zip(mutated_coordinates.T), self.clo_pop:
-            if average - np.amin(vals_pred) > 0.1: # good
+        for val_pred, mutated_coordinate, original in zip(vals_pred,
+                                    mutated_coordinates, self.clo_pop):
+            if (average - 0.5 > np.amin(vals_pred)) or self.generation > \
+                    100: # good
                 if self.fun.number_of_constraints > 0:
                     c = self.fun.constraints(mutated_coordinate)
                     if c <= 0:
@@ -209,6 +214,11 @@ class OptIA:
             self.evalcount += 1
 
     def opt_ia(self, budget, max_chunk_size):
+
+        # TODO Confirm warnings
+        import warnings
+        warnings.filterwarnings('ignore')
+
         t = 0
         best = None
         #print("budget is", budget)
