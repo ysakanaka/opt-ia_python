@@ -3,7 +3,7 @@
 import sys
 import math
 import random
-import numpy
+import numpy as np
 import copy
 
 from deap import base
@@ -32,6 +32,9 @@ class Cell:
 
     def get_coordinates(self):
         return self.coordinates
+
+    def get_array_coordinates(self):
+        return [list(np.array(self.coordinates).copy())]
 
     def get_val(self):
         return  self.val

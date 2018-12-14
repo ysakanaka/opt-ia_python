@@ -12,8 +12,8 @@ from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 
 class OptIA:
     MAX_GENERATION = 10000
-    MAX_POP = 20
-    MAX_AGE = 6
+    MAX_POP = 30
+    MAX_AGE = 10
     DIMENSION = None
     LBOUNDS = None
     UBOUNDS = None
@@ -27,6 +27,9 @@ class OptIA:
     pop = []
     clo_pop = []
     hyp_pop = []
+
+    original_coordinates = []
+    original_vals = []
     #kernel = C(1.0, (1e-3, 1e3) * RBF(10, (1e-2, 1e2)))
     gp = GaussianProcessRegressor()
 
@@ -46,8 +49,15 @@ class OptIA:
                                   #OptIA.DIMENSION)
             #coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
             #              np.random.rand(1, self.DIMENSION)
-        coordinates = sobol_seq.i4_sobol_generate(self.DIMENSION, OptIA.MAX_POP)
-
+        coordinates = sobol_seq.i4_sobol_generate(self.DIMENSION,
+                                                   int(OptIA.MAX_POP/2))*[5,
+                                                                         -5]
+        coordinates = np.append(coordinates, sobol_seq.i4_sobol_generate(
+            self.DIMENSION,
+                                                  int(OptIA.MAX_POP/2)) * [
+            -5,5], axis=0)
+        print(self.LBOUNDS, self.UBOUNDS)
+        print(coordinates)
 # TODO modify generation phase
         for coordinate in coordinates:
             val = None
@@ -76,8 +86,8 @@ class OptIA:
         self.hyp_pop.clear()
         np_mutated_coordinates = None
         mutated_coordinates = []
-        original_coordinates = []
-        original_vals = []
+        local_original_vals = []
+
         for original in self.clo_pop:
             mutated_coordinate = []
             mutated_coordinate = np.array([original.get_coordinates()[d] +  (self.UBOUNDS[d] -
@@ -105,33 +115,53 @@ class OptIA:
             np_mutated_coordinates = np.append(np_mutated_coordinates,
                                             mutated_coordinate.copy())
             #print(mutated_coordinates)
-            original_coordinates +=  [list(original.get_coordinates(
+            #self.original_coordinates +=  [list(original.get_coordinates(
+            #).copy())]
+            if len(self.original_coordinates) < 1:
+                self.original_coordinates += [list(original.get_coordinates(
+                 ).copy())]
+            else:
+                self.original_coordinates = np.append(self.original_coordinates,\
+                                                  original.get_array_coordinates(
 
-            ).copy())]
+                                                  ), axis=0)
+
             #np.append(original_coordinates,
                                    #          np.array(
+
             #          original.get_coordinates(
 
                                            #  ).copy()).T)
-            original_vals = np.append(original_vals,
+            self.original_vals = np.append(self.original_vals,
                                       original.get_val())
+            local_original_vals = np.append(local_original_vals,
+                                           original.get_val())
 
         #print(original_coordinates)
         #print(original_vals)
         #original_coordinates = np.delete(original_coordinates, 0)
-        original_coordinates = np.array(original_coordinates)
-        original_coordinates = np.atleast_2d(original_coordinates)
+        self.original_coordinates = np.array(self.original_coordinates)
+        self.original_coordinates = np.atleast_2d(self.original_coordinates)
         mutated_coordinates = np.atleast_2d(np.array(mutated_coordinates))
         pre_mutated_coordinates = np.delete(np_mutated_coordinates, 0)
         #print(original_coordinates.shape)
 
+        original_coordinates_index = np.unique(self.original_coordinates,
+                                              axis=0, return_index=True)[1]
+        self.original_coordinates = [self.original_coordinates[
+                                         original_coordinates_index] for
+                                     original_coordinates_index in sorted(
+                original_coordinates_index)]
+        original_vals_index = np.unique(self.original_vals, axis=0,
+                                        return_index=True)[1]
+        self.original_vals = [self.original_vals[original_vals_index] for
+                              original_vals_index in sorted(original_vals_index)]
 
-        original_vals = original_vals
-        #print(original_vals.shape)
+        #print(self.original_coordinates)
+        #print("")
+        #print(self.original_vals)
 
-
-
-        self.gp.fit(original_coordinates, original_vals)
+        self.gp.fit(self.original_coordinates, self.original_vals)
         vals_pred, sigma = self.gp.predict(mutated_coordinates,
                                            return_std=True)
 
@@ -140,7 +170,7 @@ class OptIA:
         #print(mutated_coordinates)
         #print(self.clo_pop)
 
-        average = np.average(original_vals)
+        average = np.average(local_original_vals)
 
         mutated_val = 0
         for val_pred, mutated_coordinate, original in zip(vals_pred,
@@ -241,8 +271,8 @@ class OptIA:
             for c in self.pop:
                 if np.amin(c.get_val()) < np.amin(best.get_val()):
                     best = c
-            best.reset_age()
-            #print("best is", best.get_val())
+            #best.reset_age()
+            print("best is", best.get_val())
             #print("total pop is", len(self.pop))
             #print("total hyp_pop is", len(self.hyp_pop))
             #print("total clo_pop is", len(self.clo_pop))
