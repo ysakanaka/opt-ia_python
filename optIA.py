@@ -12,7 +12,7 @@ from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 
 class OptIA:
     MAX_GENERATION = 10000
-    MAX_POP = 30
+    MAX_POP = 10
     MAX_AGE = 10
     DIMENSION = None
     LBOUNDS = None
@@ -91,10 +91,18 @@ class OptIA:
         for original in self.clo_pop:
             #print("original",original.get_coordinates())
             mutated_coordinate = []
-            mutated_coordinate = np.array([original.get_coordinates()[d] +  (self.UBOUNDS[d] -
-                                                   self.LBOUNDS[d])/10.0 *
-                                           random.gauss(0, 1) for d in
-                                           range(self.DIMENSION)])
+            if self.generation < 100:
+                mutated_coordinate = np.array([original.get_coordinates()[d] +  (self.UBOUNDS[d] -
+                                                       self.LBOUNDS[d])/10.0 *
+                                               random.gauss(0, 1) for d in
+                                               range(self.DIMENSION)])
+            else:
+                mutated_coordinate = np.array(
+                    [original.get_coordinates()[d] + (self.UBOUNDS[d] -
+                                                      self.LBOUNDS[d]) /
+                     100.0 *
+                     random.gauss(0, 1) for d in
+                     range(self.DIMENSION)])
             #print("mutated", mutated_coordinate)
             #for d in range(self.DIMENSION):
             #    val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
@@ -177,8 +185,8 @@ class OptIA:
         mutated_val = 0
         for val_pred, mutated_coordinate, original in zip(vals_pred,
                                     mutated_coordinates, self.clo_pop):
-            if ((average - 0.5 > np.amin(vals_pred)) or self.generation >
-                    100) and self.generation > 1: # good
+            if ((average - 0.8 > np.amin(vals_pred)) or self.generation >
+                    500) and self.generation > 1: # good
                 if self.fun.number_of_constraints > 0:
                     c = self.fun.constraints(mutated_coordinate)
                     if c <= 0:
@@ -284,7 +292,7 @@ class OptIA:
             t +=1
             self.generation += 1
             #print("generation", self.generation)
-            #print(best.get_coordinates())
+            print(best.get_coordinates())
         return best.get_coordinates()
 
 if __name__ == '__main__':
@@ -292,7 +300,7 @@ if __name__ == '__main__':
     t = 0
     opt_ia = OptIA()
     while t < OptIA.MAX_GENERATION:
-        opt_ia.clone(2)
+        opt_ia.clone(1)
         opt_ia.hyper_mutate()
         opt_ia.hybrid_age()
         opt_ia.select()
