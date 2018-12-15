@@ -56,8 +56,8 @@ class OptIA:
             self.DIMENSION,
                                                   int(OptIA.MAX_POP/2)) * [
             -5,5], axis=0)
-        print(self.LBOUNDS, self.UBOUNDS)
-        print(coordinates)
+        #print(self.LBOUNDS, self.UBOUNDS)
+        #print(coordinates)
 # TODO modify generation phase
         for coordinate in coordinates:
             val = None
@@ -89,11 +89,13 @@ class OptIA:
         local_original_vals = []
 
         for original in self.clo_pop:
+            #print("original",original.get_coordinates())
             mutated_coordinate = []
             mutated_coordinate = np.array([original.get_coordinates()[d] +  (self.UBOUNDS[d] -
-                                                   self.LBOUNDS[d])/100.0 *
+                                                   self.LBOUNDS[d])/10.0 *
                                            random.gauss(0, 1) for d in
                                            range(self.DIMENSION)])
+            #print("mutated", mutated_coordinate)
             #for d in range(self.DIMENSION):
             #    val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
             #                                     self.LBOUNDS[d])/100.0 * \
@@ -175,8 +177,8 @@ class OptIA:
         mutated_val = 0
         for val_pred, mutated_coordinate, original in zip(vals_pred,
                                     mutated_coordinates, self.clo_pop):
-            if (average - 0.5 > np.amin(vals_pred)) or self.generation > \
-                    100: # good
+            if ((average - 0.5 > np.amin(vals_pred)) or self.generation >
+                    100) and self.generation > 1: # good
                 if self.fun.number_of_constraints > 0:
                     c = self.fun.constraints(mutated_coordinate)
                     if c <= 0:
@@ -271,7 +273,7 @@ class OptIA:
             for c in self.pop:
                 if np.amin(c.get_val()) < np.amin(best.get_val()):
                     best = c
-            #best.reset_age()
+            best.reset_age()
             print("best is", best.get_val())
             #print("total pop is", len(self.pop))
             #print("total hyp_pop is", len(self.hyp_pop))
