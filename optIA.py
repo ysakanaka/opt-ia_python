@@ -162,14 +162,15 @@ class OptIA:
                                          original_coordinates_index] for
                                      original_coordinates_index in sorted(
                 original_coordinates_index)]
-        original_vals_index = np.unique(self.original_vals, axis=0,
-                                        return_index=True)[1]
-        self.original_vals = [self.original_vals[original_vals_index] for
-                              original_vals_index in sorted(original_vals_index)]
+        #original_vals_index = np.unique(self.original_vals, axis=0,
+                                        #return_index=True)[1]
+        self.original_vals = [self.original_vals[original_coordinates_index] for
+                              original_coordinates_index in sorted(
+                                  original_coordinates_index)]
 
-        #print(self.original_coordinates)
-        #print("")
-        #print(self.original_vals)
+        print(self.original_coordinates)
+        print("")
+        print(self.original_vals)
 
         self.gp.fit(self.original_coordinates, self.original_vals)
         vals_pred, sigma = self.gp.predict(mutated_coordinates,
