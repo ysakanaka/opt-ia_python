@@ -6,6 +6,7 @@ import numpy as np
 import copy
 import cell
 
+from scipy.stats import norm
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 
@@ -49,13 +50,17 @@ class OptIA:
                                   #OptIA.DIMENSION)
             #coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
             #              np.random.rand(1, self.DIMENSION)
-        coordinates = sobol_seq.i4_sobol_generate(self.DIMENSION,
-                                                   int(OptIA.MAX_POP/2))*[5,
-                                                                         -5]
-        coordinates = np.append(coordinates, sobol_seq.i4_sobol_generate(
-            self.DIMENSION,
-                                                  int(OptIA.MAX_POP/2)) * [
-            -5,5], axis=0)
+        coordinates = norm.ppf(sobol_seq.i4_sobol_generate(self.DIMENSION,
+                                                           OptIA.MAX_POP))*(
+            self.UBOUNDS-self.LBOUNDS)/3
+
+        #coordinates = sobol_seq.i4_sobol_generate(self.DIMENSION,
+        #                                           int(OptIA.MAX_POP/2))*[5,
+         #                                                                -5]
+        #coordinates = np.append(coordinates, sobol_seq.i4_sobol_generate(
+         #   self.DIMENSION,
+          #                                        int(OptIA.MAX_POP/2)) * [
+           # -5,5], axis=0)
         #print(self.LBOUNDS, self.UBOUNDS)
         #print(coordinates)
 # TODO modify generation phase
@@ -91,9 +96,10 @@ class OptIA:
         for original in self.clo_pop:
             #print("original",original.get_coordinates())
             mutated_coordinate = []
-            if self.generation < 100:
+            if random.random()< 2.0:
                 mutated_coordinate = np.array([original.get_coordinates()[d] +  (self.UBOUNDS[d] -
-                                                       self.LBOUNDS[d])/10.0 *
+                                                       self.LBOUNDS[d])/10.0
+                                               *random.randint(0, 2)*
                                                random.gauss(0, 1) for d in
                                                range(self.DIMENSION)])
             else:
@@ -168,9 +174,9 @@ class OptIA:
                               original_coordinates_index in sorted(
                                   original_coordinates_index)]
 
-        print(self.original_coordinates)
-        print("")
-        print(self.original_vals)
+        #print(self.original_coordinates)
+        #print("")
+        #print(self.original_vals)
 
         self.gp.fit(self.original_coordinates, self.original_vals)
         vals_pred, sigma = self.gp.predict(mutated_coordinates,
@@ -186,7 +192,7 @@ class OptIA:
         mutated_val = 0
         for val_pred, mutated_coordinate, original in zip(vals_pred,
                                     mutated_coordinates, self.clo_pop):
-            if ((average - 0.8 > np.amin(vals_pred)) or self.generation >
+            if ((average - 1.0 > np.amin(vals_pred)) or self.generation >
                     500) and self.generation > 1: # good
                 if self.fun.number_of_constraints > 0:
                     c = self.fun.constraints(mutated_coordinate)
@@ -289,10 +295,10 @@ class OptIA:
             #print("total clo_pop is", len(self.clo_pop))
             chunk = self.evalcount
             budget -= chunk
-            #print("remaining budget ",budget)
+            print("remaining budget ",budget)
             t +=1
             self.generation += 1
-            #print("generation", self.generation)
+            print("generation", self.generation)
             print(best.get_coordinates())
         return best.get_coordinates()
 
