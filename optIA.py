@@ -21,6 +21,7 @@ class OptIA:
     fun = None
     evalcount = 0
     generation = 0
+    best = None
 
     GENOTYPE_DUP = True
     SAIL = True
@@ -43,6 +44,10 @@ class OptIA:
         self.pop.clear()
         self.clo_pop.clear()
         self.hyp_pop.clear()
+
+        self.original_coordinates = []
+        self.original_vals = []
+        self.best = None
 
 
 
@@ -133,25 +138,28 @@ class OptIA:
             #print(mutated_coordinates)
             #self.original_coordinates +=  [list(original.get_coordinates(
             #).copy())]
-            if len(self.original_coordinates) < 1:
-                self.original_coordinates += [list(original.get_coordinates(
-                 ).copy())]
-            else:
-                self.original_coordinates = np.append(self.original_coordinates,\
-                                                  original.get_array_coordinates(
 
-                                                  ), axis=0)
+            if self.generation == 0:
+                self.best = self.clo_pop[0]
+                if len(self.original_coordinates) < 1:
+                    self.original_coordinates += [list(original.get_coordinates(
+                     ).copy())]
+                else:
+                    self.original_coordinates = np.append(self.original_coordinates,\
+                                                      original.get_array_coordinates(
 
-            #np.append(original_coordinates,
-                                   #          np.array(
+                                                      ), axis=0)
 
-            #          original.get_coordinates(
+                #np.append(original_coordinates,
+                                       #          np.array(
 
-                                           #  ).copy()).T)
-            self.original_vals = np.append(self.original_vals,
-                                      original.get_val())
-            local_original_vals = np.append(local_original_vals,
-                                           original.get_val())
+                #          original.get_coordinates(
+
+                                               #  ).copy()).T)
+                self.original_vals = np.append(self.original_vals,
+                                          original.get_val())
+                local_original_vals = np.append(local_original_vals,
+                                               original.get_val())
 
         #print(original_coordinates)
         #print(original_vals)
@@ -192,16 +200,30 @@ class OptIA:
         mutated_val = 0
         for val_pred, mutated_coordinate, original in zip(vals_pred,
                                     mutated_coordinates, self.clo_pop):
-            if ((average - 1.0 > np.amin(vals_pred)) or self.generation >
-                    500) and self.generation > 1: # good
+            print("pred", val_pred)
+            if ((np.amin(self.best.get_val()) > np.amin(val_pred)) or
+                self.generation >
+                    500) or self.generation == 0: # good
                 if self.fun.number_of_constraints > 0:
                     c = self.fun.constraints(mutated_coordinate)
                     if c <= 0:
                         self.evalcount += 1
                         mutated_val = self.fun(mutated_coordinate)
+                        self.original_coordinates = np.append(
+                            self.original_coordinates, [list(
+                                mutated_coordinate.copy())], axis=0)
+                        self.original_vals = np.append(self.original_vals,
+                                                       mutated_val)
+                        print("real val", mutated_val)
                 else:
                     self.evalcount += 1
                     mutated_val = self.fun(mutated_coordinate)
+                    self.original_coordinates = np.append(
+                        self.original_coordinates, [list(
+                            mutated_coordinate.copy())], axis=0)
+                    self.original_vals = np.append(self.original_vals,
+                                                   mutated_val)
+                    print("real val", mutated_val)
 
                 if np.amin(mutated_val) < np.amin(original.get_val()):
                     self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
@@ -284,12 +306,12 @@ class OptIA:
             self.select()
             #for c in self.pop:
                 #print("after select", c.get_val())
-            best = self.pop[0]
+            self.best = self.pop[0]
             for c in self.pop:
-                if np.amin(c.get_val()) < np.amin(best.get_val()):
-                    best = c
-            best.reset_age()
-            print("best is", best.get_val())
+                if np.amin(c.get_val()) < np.amin(self.best.get_val()):
+                    self.best = c
+            self.best.reset_age()
+            print("best is", self.best.get_val())
             #print("total pop is", len(self.pop))
             #print("total hyp_pop is", len(self.hyp_pop))
             #print("total clo_pop is", len(self.clo_pop))
@@ -299,8 +321,8 @@ class OptIA:
             t +=1
             self.generation += 1
             print("generation", self.generation)
-            print(best.get_coordinates())
-        return best.get_coordinates()
+            print(self.best.get_coordinates())
+        return self.best.get_coordinates()
 
 if __name__ == '__main__':
     # assert len(sys.argv) > 1
