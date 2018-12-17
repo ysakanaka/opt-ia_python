@@ -9,12 +9,13 @@ import cell
 from scipy.stats import norm
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
+import deap.tools
 
 
 class OptIA:
     MAX_GENERATION = 10000
-    MAX_POP = 10
-    MAX_AGE = 10
+    MAX_POP = 20
+    MAX_AGE = 3
     DIMENSION = None
     LBOUNDS = None
     UBOUNDS = None
@@ -57,7 +58,7 @@ class OptIA:
             #              np.random.rand(1, self.DIMENSION)
         coordinates = norm.ppf(sobol_seq.i4_sobol_generate(self.DIMENSION,
                                                            OptIA.MAX_POP))*(
-            self.UBOUNDS-self.LBOUNDS)/3
+            self.UBOUNDS-self.LBOUNDS)/4
 
         #coordinates = sobol_seq.i4_sobol_generate(self.DIMENSION,
         #                                           int(OptIA.MAX_POP/2))*[5,
@@ -99,22 +100,40 @@ class OptIA:
         local_original_vals = []
 
         for original in self.clo_pop:
-            #print("original",original.get_coordinates())
             mutated_coordinate = []
-            if random.random()< 2.0:
+            if random.random()< -2.0:
                 mutated_coordinate = np.array([original.get_coordinates()[d] +  (self.UBOUNDS[d] -
                                                        self.LBOUNDS[d])/10.0
                                                *random.randint(0, 2)*
                                                random.gauss(0, 1) for d in
                                                range(self.DIMENSION)])
-            else:
-                mutated_coordinate = np.array(
-                    [original.get_coordinates()[d] + (self.UBOUNDS[d] -
-                                                      self.LBOUNDS[d]) /
-                     100.0 *
-                     random.gauss(0, 1) for d in
-                     range(self.DIMENSION)])
-            #print("mutated", mutated_coordinate)
+            for d in range(self.DIMENSION):
+                val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
+                self.LBOUNDS[d])/85.0 * random.randint(1, 3)* random.gauss(
+                    0, 1)
+                mutated_coordinate = np.append(mutated_coordinate, val)
+
+            while False:
+                mutated_coordinate = list(deap.tools.mutGaussian(
+                original.get_coordinates().copy(), 0.5, 0.2, 0.5))[0]
+                if(all(0 < x for x in (np.array(mutated_coordinate) -
+                                 self.LBOUNDS))) and (all(0 < y for y in (
+                self.UBOUNDS - np.array(mutated_coordinate)))):
+                    break
+            while True:
+                mutated_coordinate = list(deap.tools.mutPolynomialBounded(
+                original.get_coordinates().copy(), eta=0.00000001,
+	                low=self.LBOUNDS.tolist(),
+                                                     up=self.UBOUNDS.tolist(),
+	                indpb=0.5))[0]
+                #print("original",original.get_coordinates())
+                #print("muta", mutated_coordinate)
+                if(all(0 < x for x in (np.array(mutated_coordinate) -
+                                 self.LBOUNDS))) and (all(0 < y for y in (
+                self.UBOUNDS - np.array(mutated_coordinate)))):
+                    break
+
+
             #for d in range(self.DIMENSION):
             #    val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
             #                                     self.LBOUNDS[d])/100.0 * \
@@ -123,21 +142,24 @@ class OptIA:
 
             # mutated_coordinate = np.delete(mutated_coordinate, 0)
             #print("original", original.get_coordinates())
-            #print("mutated", mutated_coordinates)
-            if (mutated_coordinate < self.LBOUNDS).all():
-                mutated_coordinate = self.LBOUNDS
-                print("error")
-            elif (mutated_coordinate > self.UBOUNDS).all():
-                print("error")
-                mutated_coordinate = self.UBOUNDS
+            #print("mutated", mutated_coordinate)
+            #print((mutated_coordinate < self.LBOUNDS).any())
+            #if (mutated_coordinate < self.LBOUNDS).any():
+             #   mutated_coordinate = self.LBOUNDS.copy()
+                #print("error")
+            #elif (mutated_coordinate > self.UBOUNDS).any():
+                #print("error")
+             #   mutated_coordinate = self.UBOUNDS.copy()
 
+            if random.random() < 2.7:
+                mutated_coordinates += [list(mutated_coordinate.copy())]
+            else:
+                mutated_coordinates += [list(original.get_coordinates(
 
-            mutated_coordinates += [list(mutated_coordinate.copy())]
+                ).copy())]
+
             np_mutated_coordinates = np.append(np_mutated_coordinates,
                                             mutated_coordinate.copy())
-            #print(mutated_coordinates)
-            #self.original_coordinates +=  [list(original.get_coordinates(
-            #).copy())]
 
             if self.generation == 0:
                 self.best = self.clo_pop[0]
@@ -200,10 +222,10 @@ class OptIA:
         mutated_val = 0
         for val_pred, mutated_coordinate, original in zip(vals_pred,
                                     mutated_coordinates, self.clo_pop):
-            print("pred", val_pred)
-            if ((np.amin(self.best.get_val()) > np.amin(val_pred)) or
+            #print("pred", val_pred)
+            if ((np.amin(self.best.get_val())> np.amin(val_pred)) or
                 self.generation >
-                    500) or self.generation == 0: # good
+                    103) or self.generation < 1: # good
                 if self.fun.number_of_constraints > 0:
                     c = self.fun.constraints(mutated_coordinate)
                     if c <= 0:
@@ -214,7 +236,7 @@ class OptIA:
                                 mutated_coordinate.copy())], axis=0)
                         self.original_vals = np.append(self.original_vals,
                                                        mutated_val)
-                        print("real val", mutated_val)
+                        #print("real val", mutated_val)
                 else:
                     self.evalcount += 1
                     mutated_val = self.fun(mutated_coordinate)
@@ -223,7 +245,7 @@ class OptIA:
                             mutated_coordinate.copy())], axis=0)
                     self.original_vals = np.append(self.original_vals,
                                                    mutated_val)
-                    print("real val", mutated_val)
+                    #print("real val", mutated_val)
 
                 if np.amin(mutated_val) < np.amin(original.get_val()):
                     self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
@@ -244,13 +266,11 @@ class OptIA:
     def hybrid_age(self):
         for c in self.pop:
             c.add_age()
-            if ((OptIA.MAX_AGE < c.get_age()) and (random.random() < 1.0 -
-                                                  1.0/OptIA.MAX_POP)):
+            if ((OptIA.MAX_AGE < c.get_age()) and (random.random() < 0.5)):
                 self.pop.remove(c)
         for c in self.hyp_pop:
             c.add_age()
-            if ((OptIA.MAX_AGE < c.get_age()) and (random.random() < 1.0 -
-                                                  1.0/OptIA.MAX_POP)):
+            if ((OptIA.MAX_AGE < c.get_age()) and (random.random() <  0.5)):
                 self.hyp_pop.remove(c)
 
     def select(self):
@@ -267,6 +287,8 @@ class OptIA:
                     worst = c
                 #print("worst val is ", worst.get_val())
                 #print("c val is ", c.get_val())
+                #if worst.get_age() < c.get_age():
+                 #   worst = c
             self.pop.remove(worst)
 
         while self.MAX_POP > len(self.pop):
@@ -298,30 +320,31 @@ class OptIA:
             chunk = self.MAX_POP
             #for c in self.pop:
                 #print("before clone", c.get_val())
-            self.clone(2)
+            self.clone(4)
             self.hyper_mutate()
             self.hybrid_age()
             #for c in self.hyp_pop:
                 #print("before select hyp_pop", c.get_val())
             self.select()
             #for c in self.pop:
-                #print("after select", c.get_val())
+                #print("after select", c.get_coordinates())
             self.best = self.pop[0]
             for c in self.pop:
                 if np.amin(c.get_val()) < np.amin(self.best.get_val()):
                     self.best = c
-            self.best.reset_age()
-            print("best is", self.best.get_val())
+            #self.best.reset_age()
+            #print("best is", self.best.get_val())
             #print("total pop is", len(self.pop))
             #print("total hyp_pop is", len(self.hyp_pop))
             #print("total clo_pop is", len(self.clo_pop))
             chunk = self.evalcount
             budget -= chunk
-            print("remaining budget ",budget)
+            #print("remaining budget ",budget)
             t +=1
             self.generation += 1
-            print("generation", self.generation)
-            print(self.best.get_coordinates())
+            #print("generation", self.generation)
+            #print(self.best.get_coordinates())
+            #print("test", self.fun([0.83, 0.83]))
         return self.best.get_coordinates()
 
 if __name__ == '__main__':
