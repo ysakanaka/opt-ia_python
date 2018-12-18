@@ -15,7 +15,7 @@ import deap.tools
 class OptIA:
     MAX_GENERATION = 10000
     MAX_POP = 20
-    MAX_AGE = 3
+    MAX_AGE = 5
     DIMENSION = None
     LBOUNDS = None
     UBOUNDS = None
@@ -43,20 +43,24 @@ class OptIA:
         pos = [0 for i in range(2)]
         for d in range(2):
             pos[d] = int((new_coordinate[d] - self.LBOUNDS[d])/((
-             self.LBOUNDS[d] - self.UBOUNDS[d])/5))
-        self.searched_space[pos[0]][pos[1]] += 1
+             self.UBOUNDS[d] - self.LBOUNDS[d])/5))
+        try:
+            self.searched_space[pos[0]][pos[1]] += 1
+        except IndexError:
+            print(new_coordinate)
+            print(pos)
+            exit()
 
     def is_unsearched_space(self):
         #print("min", np.amin(self.searched_space))
         return np.amin(self.searched_space) < np.average(
-           self.searched_space)/2
+           self.searched_space)/1.5
 
     def add_unsearched_candidate(self):
         self.hyp_pop.clear()
         #print(np.argmin(self.searched_space))
         x, y = divmod(int(np.argmin(self.searched_space)), 5)
         pos = [x, y]
-        print(pos)
         for i in range(self.clo_pop.__len__()):
             candidate = []
             mutated_val = 0
@@ -64,29 +68,25 @@ class OptIA:
                 candidate.append(random.uniform(self.LBOUNDS[d] + (
                 self.UBOUNDS[d] - self.LBOUNDS[d])/5*pos[d], self.LBOUNDS[d] +
                             (self.UBOUNDS[d] - self.LBOUNDS[d])/5*(pos[d]+1)))
-                print(self.LBOUNDS[d] + (
-                self.UBOUNDS[d] - self.LBOUNDS[d])/5*pos[d], self.LBOUNDS[d] +
-                            (self.UBOUNDS[d] - self.LBOUNDS[d])/5*(pos[d]+1))
-            print(candidate)
             if self.fun.number_of_constraints > 0:
                 if c <= 0:
                     self.evalcount += 1
                     mutated_val = self.fun(candidate)
-                    self.original_coordinates = np.append(
-                        self.original_coordinates, [list(
-                            candidate.copy())], axis=0)
-                    self.original_vals = np.append(self.original_vals,
-                                                   mutated_val)
+                    #self.original_coordinates = np.append(
+                        #self.original_coordinates, [list(
+                            #candidate.copy())], axis=0)
+                    #self.original_vals = np.append(self.original_vals,
+                                                #   mutated_val)
                     self.update_searched_space(candidate)
             else:
                 self.evalcount += 1
                 mutated_val = self.fun(candidate)
 
-                self.original_coordinates = np.append(
-                    self.original_coordinates, [list(
-                        candidate.copy())], axis=0)
-                self.original_vals = np.append(self.original_vals,
-                                               mutated_val)
+                #self.original_coordinates = np.append(
+                    #self.original_coordinates, [list(
+                        #candidate.copy())], axis=0)
+                #self.original_vals = np.append(self.original_vals,
+                                      #         mutated_val)
                 self.update_searched_space(candidate)
             self.hyp_pop.append(cell.Cell(candidate.copy(),
                                           mutated_val.copy(), 0))
@@ -179,7 +179,7 @@ class OptIA:
                                  self.LBOUNDS))) and (all(0 < y for y in (
                 self.UBOUNDS - np.array(mutated_coordinate)))):
                     break
-            while False:
+            while True:
                 mutated_coordinate = list(deap.tools.mutPolynomialBounded(
                 original.get_coordinates().copy(), eta=0.00000001,
                     low=self.LBOUNDS.tolist(),
@@ -385,23 +385,23 @@ class OptIA:
             #print("total clo_pop is", len(self.clo_pop))
             chunk = self.evalcount
             budget -= chunk
-            #print("remaining budget ",budget)
+            print("remaining budget ",budget)
             t +=1
             self.generation += 1
-            #print("generation", self.generation)
+            print("generation", self.generation)
             #print(self.best.get_coordinates())
             #print("test", self.fun([0.83, 0.83]))
             if self.generation == 1:
                 self.all_best = self.best
             else:
-                if np.amin(self.best.get_val()) > \
+                if np.amin(self.best.get_val()) >= \
                 np.amin(self.all_best.get_val()):
                     self.all_best_generation += 1
                 else:
                     self.all_best_generation = 0
                     self.all_best = self.best
-                #print(np.amin(self.best.get_val()))
-                #print(np.amin(self.all_best.get_val()))
+                print(np.amin(self.best.get_val()))
+                print(np.amin(self.all_best.get_val()))
                 print("all_gn", self.all_best_generation)
 
         return self.best.get_coordinates()
