@@ -23,6 +23,8 @@ class OptIA:
     evalcount = 0
     generation = 0
     best = None
+    all_best = None
+    all_best_generation = 0
 
     GENOTYPE_DUP = True
     SAIL = True
@@ -33,8 +35,61 @@ class OptIA:
 
     original_coordinates = []
     original_vals = []
+    searched_space = None
     #kernel = C(1.0, (1e-3, 1e3) * RBF(10, (1e-2, 1e2)))
     gp = GaussianProcessRegressor()
+
+    def update_searched_space(self, new_coordinate):
+        pos = [0 for i in range(2)]
+        for d in range(2):
+            pos[d] = int((new_coordinate[d] - self.LBOUNDS[d])/((
+             self.LBOUNDS[d] - self.UBOUNDS[d])/5))
+        self.searched_space[pos[0]][pos[1]] += 1
+
+    def is_unsearched_space(self):
+        #print("min", np.amin(self.searched_space))
+        return np.amin(self.searched_space) < np.average(
+           self.searched_space)/2
+
+    def add_unsearched_candidate(self):
+        self.hyp_pop.clear()
+        #print(np.argmin(self.searched_space))
+        x, y = divmod(int(np.argmin(self.searched_space)), 5)
+        pos = [x, y]
+        print(pos)
+        for i in range(self.clo_pop.__len__()):
+            candidate = []
+            mutated_val = 0
+            for d in range(2):
+                candidate.append(random.uniform(self.LBOUNDS[d] + (
+                self.UBOUNDS[d] - self.LBOUNDS[d])/5*pos[d], self.LBOUNDS[d] +
+                            (self.UBOUNDS[d] - self.LBOUNDS[d])/5*(pos[d]+1)))
+                print(self.LBOUNDS[d] + (
+                self.UBOUNDS[d] - self.LBOUNDS[d])/5*pos[d], self.LBOUNDS[d] +
+                            (self.UBOUNDS[d] - self.LBOUNDS[d])/5*(pos[d]+1))
+            print(candidate)
+            if self.fun.number_of_constraints > 0:
+                if c <= 0:
+                    self.evalcount += 1
+                    mutated_val = self.fun(candidate)
+                    self.original_coordinates = np.append(
+                        self.original_coordinates, [list(
+                            candidate.copy())], axis=0)
+                    self.original_vals = np.append(self.original_vals,
+                                                   mutated_val)
+                    self.update_searched_space(candidate)
+            else:
+                self.evalcount += 1
+                mutated_val = self.fun(candidate)
+
+                self.original_coordinates = np.append(
+                    self.original_coordinates, [list(
+                        candidate.copy())], axis=0)
+                self.original_vals = np.append(self.original_vals,
+                                               mutated_val)
+                self.update_searched_space(candidate)
+            self.hyp_pop.append(cell.Cell(candidate.copy(),
+                                          mutated_val.copy(), 0))
 
     def __init__(self, fun, lbounds, ubounds):
         self.fun = fun
@@ -49,7 +104,9 @@ class OptIA:
         self.original_coordinates = []
         self.original_vals = []
         self.best = None
-
+        self.searched_space = [[0 for i in range(5)] for j in range(5)]
+        self.all_best = None
+        self.all_best_generation = 0
 
 
             #coordinates = np.random.uniform(OptIA.LBOUNDS, OptIA.UBOUNDS,
@@ -83,6 +140,8 @@ class OptIA:
                 self.evalcount += 1
             #print("Initial eval:", val)
             self.pop.append(cell.Cell(coordinate.copy(), val.copy(), 0))
+            self.update_searched_space(coordinate)
+
 
     def clone(self, dup):
         self.clo_pop.clear()
@@ -120,12 +179,12 @@ class OptIA:
                                  self.LBOUNDS))) and (all(0 < y for y in (
                 self.UBOUNDS - np.array(mutated_coordinate)))):
                     break
-            while True:
+            while False:
                 mutated_coordinate = list(deap.tools.mutPolynomialBounded(
                 original.get_coordinates().copy(), eta=0.00000001,
-	                low=self.LBOUNDS.tolist(),
+                    low=self.LBOUNDS.tolist(),
                                                      up=self.UBOUNDS.tolist(),
-	                indpb=0.5))[0]
+                    indpb=0.5))[0]
                 #print("original",original.get_coordinates())
                 #print("muta", mutated_coordinate)
                 if(all(0 < x for x in (np.array(mutated_coordinate) -
@@ -133,23 +192,6 @@ class OptIA:
                 self.UBOUNDS - np.array(mutated_coordinate)))):
                     break
 
-
-            #for d in range(self.DIMENSION):
-            #    val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
-            #                                     self.LBOUNDS[d])/100.0 * \
-            #    random.gauss(0, 1)
-            #    mutated_coordinate = np.append(mutated_coordinate, val)
-
-            # mutated_coordinate = np.delete(mutated_coordinate, 0)
-            #print("original", original.get_coordinates())
-            #print("mutated", mutated_coordinate)
-            #print((mutated_coordinate < self.LBOUNDS).any())
-            #if (mutated_coordinate < self.LBOUNDS).any():
-             #   mutated_coordinate = self.LBOUNDS.copy()
-                #print("error")
-            #elif (mutated_coordinate > self.UBOUNDS).any():
-                #print("error")
-             #   mutated_coordinate = self.UBOUNDS.copy()
 
             if random.random() < 2.7:
                 mutated_coordinates += [list(mutated_coordinate.copy())]
@@ -171,17 +213,13 @@ class OptIA:
                                                       original.get_array_coordinates(
 
                                                       ), axis=0)
-
-                #np.append(original_coordinates,
-                                       #          np.array(
-
-                #          original.get_coordinates(
-
-                                               #  ).copy()).T)
                 self.original_vals = np.append(self.original_vals,
                                           original.get_val())
                 local_original_vals = np.append(local_original_vals,
                                                original.get_val())
+
+
+
 
         #print(original_coordinates)
         #print(original_vals)
@@ -237,6 +275,7 @@ class OptIA:
                         self.original_vals = np.append(self.original_vals,
                                                        mutated_val)
                         #print("real val", mutated_val)
+                        self.update_searched_space(mutated_coordinate)
                 else:
                     self.evalcount += 1
                     mutated_val = self.fun(mutated_coordinate)
@@ -245,6 +284,7 @@ class OptIA:
                             mutated_coordinate.copy())], axis=0)
                     self.original_vals = np.append(self.original_vals,
                                                    mutated_val)
+                    self.update_searched_space(mutated_coordinate)
                     #print("real val", mutated_val)
 
                 if np.amin(mutated_val) < np.amin(original.get_val()):
@@ -291,6 +331,7 @@ class OptIA:
                  #   worst = c
             self.pop.remove(worst)
 
+
         while self.MAX_POP > len(self.pop):
             coordinates = OptIA.LBOUNDS + (OptIA.UBOUNDS - OptIA.LBOUNDS) * \
                           np.random.rand(1, OptIA.DIMENSION)
@@ -320,8 +361,12 @@ class OptIA:
             chunk = self.MAX_POP
             #for c in self.pop:
                 #print("before clone", c.get_val())
-            self.clone(4)
-            self.hyper_mutate()
+            self.clone(2)
+            if self.is_unsearched_space() and (10 < self.generation) and \
+                (10 < self.all_best_generation):
+                self.add_unsearched_candidate()
+            else:
+                self.hyper_mutate()
             self.hybrid_age()
             #for c in self.hyp_pop:
                 #print("before select hyp_pop", c.get_val())
@@ -333,7 +378,8 @@ class OptIA:
                 if np.amin(c.get_val()) < np.amin(self.best.get_val()):
                     self.best = c
             #self.best.reset_age()
-            #print("best is", self.best.get_val())
+            print("best is", self.best.get_val())
+            print(self.searched_space)
             #print("total pop is", len(self.pop))
             #print("total hyp_pop is", len(self.hyp_pop))
             #print("total clo_pop is", len(self.clo_pop))
@@ -345,6 +391,19 @@ class OptIA:
             #print("generation", self.generation)
             #print(self.best.get_coordinates())
             #print("test", self.fun([0.83, 0.83]))
+            if self.generation == 1:
+                self.all_best = self.best
+            else:
+                if np.amin(self.best.get_val()) > \
+                np.amin(self.all_best.get_val()):
+                    self.all_best_generation += 1
+                else:
+                    self.all_best_generation = 0
+                    self.all_best = self.best
+                #print(np.amin(self.best.get_val()))
+                #print(np.amin(self.all_best.get_val()))
+                print("all_gn", self.all_best_generation)
+
         return self.best.get_coordinates()
 
 if __name__ == '__main__':
