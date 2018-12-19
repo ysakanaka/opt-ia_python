@@ -44,11 +44,13 @@ class OptIA:
         for d in range(2):
             pos[d] = int((new_coordinate[d] - self.LBOUNDS[d])/((
              self.UBOUNDS[d] - self.LBOUNDS[d])/5))
+            if 4 < pos[d]:
+                pos[d] = 4
+            elif pos[d] < -4:
+                pos[d] = -4  # TODO should be modify
         try:
-            if np.array_equal(pos, np.array([5., 5.])):
-                self.searched_space[4][4] += 1  # TODO should be modify
-            else:
-                self.searched_space[pos[0]][pos[1]] += 1
+            self.searched_space[4][4] += 1
+
         except IndexError:
             print(new_coordinate)
             print(pos)
