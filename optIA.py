@@ -381,17 +381,16 @@ class OptIA:
                 if np.amin(c.get_val()) < np.amin(self.best.get_val()):
                     self.best = c
             #self.best.reset_age()
-            print("best is", self.best.get_val())
-            print(self.searched_space)
+            #print(self.searched_space)
             #print("total pop is", len(self.pop))
             #print("total hyp_pop is", len(self.hyp_pop))
             #print("total clo_pop is", len(self.clo_pop))
             chunk = self.evalcount
             budget -= chunk
-            print("remaining budget ",budget)
+            #print("remaining budget ",budget)
             t +=1
             self.generation += 1
-            print("generation", self.generation)
+            #print("generation", self.generation)
             #print(self.best.get_coordinates())
             #print("test", self.fun([0.83, 0.83]))
             if self.generation == 1:
@@ -403,9 +402,9 @@ class OptIA:
                 else:
                     self.all_best_generation = 0
                     self.all_best = self.best
-                print(np.amin(self.best.get_val()))
-                print(np.amin(self.all_best.get_val()))
-                print("all_gn", self.all_best_generation)
+                #print(np.amin(self.best.get_val()))
+                #print(np.amin(self.all_best.get_val()))
+                #print("all_gn", self.all_best_generation)
 
         return self.best.get_coordinates()
 
