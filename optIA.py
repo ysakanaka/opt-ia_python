@@ -100,12 +100,16 @@ class OptIA:
             self.hyp_pop.append(cell.Cell(candidate.copy(),
                                           mutated_val.copy(), 0))
 
-    def __init__(self, fun, lbounds, ubounds):
+    def __init__(self, fun, lbounds, ubounds, ra=False, ssa=False,
+                 sua=False):
         self.fun = fun
         self.LBOUNDS = lbounds
         self.UBOUNDS = ubounds
         self.DIMENSION = len(lbounds)
 
+        self.RESET_AGE = ra
+        self.SEARCHSPACE_ASSIST = ssa
+        self.SURROGATE_ASSIST = sua
         self.pop.clear()
         self.clo_pop.clear()
         self.hyp_pop.clear()
@@ -187,6 +191,8 @@ class OptIA:
                 self.best = self.clo_pop[0]
                 self.original_coordinates += [list(original.get_coordinates(
                      ).copy())]
+                self.original_vals = np.append(self.original_vals,
+                                               original.get_val())
 
         self.original_coordinates = np.array(self.original_coordinates)
         self.original_coordinates = np.atleast_2d(self.original_coordinates)
@@ -202,16 +208,57 @@ class OptIA:
                               original_coordinates_index in sorted(
                                   original_coordinates_index)]
 
-        self.gp.fit(self.original_coordinates, self.original_vals)
-        vals_pred, deviations = self.gp.predict(mutated_coordinates,
-                                           return_std=True)
+        vals_pred = []
+        deviations = []
+
+        if self.SURROGATE_ASSIST:
+            self.gp.fit(self.original_coordinates, self.original_vals)
+            vals_pred, deviations = self.gp.predict(mutated_coordinates,
+                                               return_std=True)
 
         mutated_val = 0
         for val_pred, deviation, mutated_coordinate, original in zip(
                 vals_pred, deviations, mutated_coordinates, self.clo_pop):
-            if ((np.amin(self.best.get_val()) > np.amin(val_pred)) or (
-                    3 < deviation) or self.generation > 103) or \
-                    (self.generation < 1) or not self.SURROGATE_ASSIST:
+            if self.SURROGATE_ASSIST:
+                if ((np.amin(self.best.get_val()) > np.amin(val_pred)) or (
+                        3 < deviation) or self.generation > 103) or \
+                        (self.generation < 1):
+                    if self.fun.number_of_constraints > 0:
+                        c = self.fun.constraints(mutated_coordinate)
+                        if c <= 0:
+                            self.evalcount += 1
+                            mutated_val = self.fun(mutated_coordinate)
+                            self.original_coordinates = np.append(
+                                self.original_coordinates, [list(
+                                    mutated_coordinate.copy())], axis=0)
+                            self.original_vals = np.append(self.original_vals,
+                                                           mutated_val)
+                            self.update_searched_space(mutated_coordinate)
+                    else:
+                        self.evalcount += 1
+                        mutated_val = self.fun(mutated_coordinate)
+                        self.original_coordinates = np.append(
+                            self.original_coordinates, [list(
+                                mutated_coordinate.copy())], axis=0)
+                        self.original_vals = np.append(self.original_vals,
+                                                       mutated_val)
+                        self.update_searched_space(mutated_coordinate)
+                    if np.amin(mutated_val) < np.amin(original.get_val()):
+                        self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
+                                                      mutated_val.copy(), 0))
+                    else:
+                        self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
+                                                      mutated_val.copy(),
+                                                      original.get_age()))
+                else:
+                    if np.amin(val_pred) < np.amin(original.get_val()):
+                        self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
+                                                      val_pred.copy(), 0))
+                    else:
+                        self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
+                                                      val_pred.copy(),
+                                                      original.get_age()))
+            else:
                 if self.fun.number_of_constraints > 0:
                     c = self.fun.constraints(mutated_coordinate)
                     if c <= 0:
@@ -239,14 +286,6 @@ class OptIA:
                     self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
                                                   mutated_val.copy(),
                                                   original.get_age()))
-            else:
-                if np.amin(val_pred) < np.amin(original.get_val()):
-                    self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
-                                                  val_pred.copy(), 0))
-                else:
-                    self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
-                                                  val_pred.copy(),
-                                                  original.get_age()))
 
     def hybrid_age(self):
         for c in self.pop:
@@ -271,16 +310,16 @@ class OptIA:
             self.pop.remove(worst)
 
         while self.MAX_POP > len(self.pop):
-            coordinates = OptIA.LBOUNDS + (OptIA.UBOUNDS - OptIA.LBOUNDS) * \
-                          np.random.rand(1, OptIA.DIMENSION)
+            coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
+                          np.random.rand(1, self.DIMENSION)
             val = None
             if self.fun.number_of_constraints > 0:
                 c = self.fun.constraints(coordinates)
                 if c <= 0:
                     val = self.fun(coordinates)
             else:
-                val = self.fun(coordinates)
-            self.pop.append(cell.Cell(coordinates, val, 0))
+                val = self.fun(coordinates[0])
+            self.pop.append(cell.Cell(coordinates[0], val, 0))
             self.evalcount += 1
 
     def opt_ia(self, budget):  # TODO Chunk system
@@ -289,7 +328,7 @@ class OptIA:
         # TODO Confirm warnings
         import warnings
         warnings.filterwarnings('ignore')
-        logger.debug("budget is", budget)
+        logger.debug('budget is %s', budget)
         while budget > 0:
             self.evalcount = 0
             self.clone(2)
@@ -313,14 +352,14 @@ class OptIA:
             budget -= chunk
 
             logger.debug(self.searched_space)
-            logger.debug("total pop is", self.pop.__len__())
-            logger.debug("total hyp pop is", self.hyp_pop.__len__())
-            logger.debug("total clo pop is", self.clo_pop.__len__())
-            logger.debug("remaining budget", budget)
+            logger.debug(self.pop.__len__())
+            logger.debug(self.hyp_pop.__len__())
+            logger.debug(self.clo_pop.__len__())
+            logger.debug(budget)
 
             self.generation += 1
 
-            logger.debug("generation", self.generation)
+            logger.debug(self.generation)
             logger.debug(self.best.get_coordinates())
 
             if self.generation == 1:
@@ -335,7 +374,6 @@ class OptIA:
 
                 logger.debug(np.amin(self.best.get_val()))
                 logger.debug(np.amin(self.all_best.get_val()))
-                logger.debug("best of all generation",
-                             self.all_best_generation)
+                logger.debug(self.all_best_generation)
 
         return self.best.get_coordinates()
