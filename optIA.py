@@ -203,17 +203,15 @@ class OptIA:
                                   original_coordinates_index)]
 
         self.gp.fit(self.original_coordinates, self.original_vals)
-        vals_pred, sigma = self.gp.predict(mutated_coordinates,
+        vals_pred, deviations = self.gp.predict(mutated_coordinates,
                                            return_std=True)
 
         mutated_val = 0
-        for val_pred, mutated_coordinate, original in zip(vals_pred,
-                                                          mutated_coordinates,
-                                                          self.clo_pop):
-            if ((np.amin(self.best.get_val()) > np.amin(val_pred)) or
-                self.generation >
-                    103) or (self.generation < 1) or not(
-                        self.SURROGATE_ASSIST):
+        for val_pred, deviation, mutated_coordinate, original in zip(
+                vals_pred, deviations, mutated_coordinates, self.clo_pop):
+            if ((np.amin(self.best.get_val()) > np.amin(val_pred)) or (
+                    3 < deviation) or self.generation > 103) or \
+                    (self.generation < 1) or not self.SURROGATE_ASSIST:
                 if self.fun.number_of_constraints > 0:
                     c = self.fun.constraints(mutated_coordinate)
                     if c <= 0:
