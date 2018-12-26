@@ -181,29 +181,12 @@ class OptIA:
                             (self.UBOUNDS - np.array(mutated_coordinate)))):
                     break
 
-            if random.random() < 2.7:
-                mutated_coordinates += [list(mutated_coordinate.copy())]
-            else:
-                mutated_coordinates += [list(original.get_coordinates(
-
-                ).copy())]
-
-            np_mutated_coordinates = np.append(np_mutated_coordinates,
-                                               mutated_coordinate.copy())
+            mutated_coordinates += [list(mutated_coordinate.copy())]
 
             if self.generation == 0:
                 self.best = self.clo_pop[0]
-                if len(self.original_coordinates) < 1:
-                    self.original_coordinates += [list(original.get_coordinates(
+                self.original_coordinates += [list(original.get_coordinates(
                      ).copy())]
-                else:
-                    self.original_coordinates = \
-                        np.append(self.original_coordinates,
-                                  original.get_array_coordinates(), axis=0)
-                self.original_vals = np.append(self.original_vals,
-                                               original.get_val())
-                local_original_vals = np.append(local_original_vals,
-                                                original.get_val())
 
         self.original_coordinates = np.array(self.original_coordinates)
         self.original_coordinates = np.atleast_2d(self.original_coordinates)
@@ -229,7 +212,7 @@ class OptIA:
                                                           self.clo_pop):
             if ((np.amin(self.best.get_val()) > np.amin(val_pred)) or
                 self.generation >
-                    103) or self.generation < 1: # good
+                    103) or self.generation < 1:  # good
                 if self.fun.number_of_constraints > 0:
                     c = self.fun.constraints(mutated_coordinate)
                     if c <= 0:
@@ -326,6 +309,9 @@ class OptIA:
                     self.best = c
             if OptIA.RESET_AGE:
                 self.best.reset_age()
+
+            chunk = self.evalcount
+            budget -= chunk
 
             logger.debug(self.searched_space)
             logger.debug("total pop is", self.pop.__len__())
