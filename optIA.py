@@ -29,7 +29,9 @@ class OptIA:
     all_best_generation = 0
 
     GENOTYPE_DUP = True
-    SAIL = True
+    SURROGATE_ASSIST = False
+    RESET_AGE = False
+    SEARCHSPACE_ASSIST = False
 
     pop = []
     clo_pop = []
@@ -305,46 +307,50 @@ class OptIA:
         # TODO Confirm warnings
         import warnings
         warnings.filterwarnings('ignore')
-
-        t = 0
         logger.debug("budget is", budget)
         while budget > 0:
             self.evalcount = 0
             self.clone(2)
-            if self.is_unsearched_space() and (10 < self.generation) and \
-                (10 < self.all_best_generation):
-                self.add_unsearched_candidate()
-            else:
-                self.hyper_mutate()
+            if OptIA.SEARCHSPACE_ASSIST:
+                if self.is_unsearched_space() and (10 < self.generation) and \
+                            (10 < self.all_best_generation):
+                    self.add_unsearched_candidate()
+                else:
+                    self.hyper_mutate()
+            self.hyper_mutate()
             self.hybrid_age()
             self.select()
             self.best = self.pop[0]
             for c in self.pop:
                 if np.amin(c.get_val()) < np.amin(self.best.get_val()):
                     self.best = c
-            #self.best.reset_age()
+            if OptIA.RESET_AGE:
+                self.best.reset_age()
+
             logger.debug(self.searched_space)
             logger.debug("total pop is", self.pop.__len__())
             logger.debug("total hyp pop is", self.hyp_pop.__len__())
             logger.debug("total clo pop is", self.clo_pop.__len__())
             logger.debug("remaining budget", budget)
-            t += 1
+
             self.generation += 1
+
             logger.debug("generation", self.generation)
             logger.debug(self.best.get_coordinates())
+
             if self.generation == 1:
                 self.all_best = self.best
             else:
                 if np.amin(self.best.get_val()) >= \
-                np.amin(self.all_best.get_val()):
+                        np.amin(self.all_best.get_val()):
                     self.all_best_generation += 1
                 else:
                     self.all_best_generation = 0
                     self.all_best = self.best
+
                 logger.debug(np.amin(self.best.get_val()))
                 logger.debug(np.amin(self.all_best.get_val()))
                 logger.debug("best of all generation",
                              self.all_best_generation)
 
         return self.best.get_coordinates()
-
