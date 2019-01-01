@@ -303,21 +303,31 @@ class OptIA:
                                                       val_pred.copy(),
                                                       original.get_age()))
             else:
-                self.evalcount += 1
                 if self.fun.number_of_constraints > 0:
-                    c = self.fun.constraints(mutated_coordinates)
+                    c = self.fun.constraints(mutated_coordinate)
                     if c <= 0:
-                        mutated_val = self.fun(mutated_coordinates)
+                        self.evalcount += 1
+                        mutated_val = self.fun(mutated_coordinate)
+                        self.original_coordinates = np.append(
+                            self.original_coordinates, [list(
+                                mutated_coordinate.copy())], axis=0)
+                        self.original_vals = np.append(self.original_vals,
+                                                       mutated_val)
+                        self.update_searched_space(mutated_coordinate)
                 else:
-                    mutated_val = self.fun(mutated_coordinates)
-
-                # print("mutated val is", mutated_val)
-                # print("mutated coordinates is", mutated_coordinates)
+                    self.evalcount += 1
+                    mutated_val = self.fun(mutated_coordinate)
+                    self.original_coordinates = np.append(
+                        self.original_coordinates, [list(
+                            mutated_coordinate.copy())], axis=0)
+                    self.original_vals = np.append(self.original_vals,
+                                                   mutated_val)
+                    self.update_searched_space(mutated_coordinate)
                 if np.amin(mutated_val) < np.amin(original.get_val()):
-                    self.hyp_pop.append(cell.Cell(mutated_coordinates.copy(),
+                    self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
                                                   mutated_val.copy(), 0))
                 else:
-                    self.hyp_pop.append(cell.Cell(mutated_coordinates.copy(),
+                    self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
                                                   mutated_val.copy(),
                                                   original.get_age()))
 
@@ -374,7 +384,7 @@ class OptIA:
                     self.add_unsearched_candidate()
                 else:
                     self.hyper_mutate()
-            self.hyper_mutate()
+            self.hyper_mutate_master()
             self.hybrid_age()
             self.select()
             self.best = self.pop[0]
