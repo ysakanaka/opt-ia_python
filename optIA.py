@@ -17,7 +17,7 @@ logger = logging.getLogger("optIA")
 class OptIA:
     MAX_GENERATION = 10000
     MAX_POP = 20
-    MAX_AGE = 5
+    MAX_AGE = 6
     DIMENSION = None
     LBOUNDS = None
     UBOUNDS = None
@@ -290,11 +290,13 @@ class OptIA:
     def hybrid_age(self):
         for c in self.pop:
             c.add_age()
-            if (OptIA.MAX_AGE < c.get_age()) and (random.random() < 0.5):
+            if ((OptIA.MAX_AGE < c.get_age()) and (random.random() < 1.0 -
+                                                  1.0/OptIA.MAX_POP)):
                 self.pop.remove(c)
         for c in self.hyp_pop:
             c.add_age()
-            if (OptIA.MAX_AGE < c.get_age()) and (random.random() < 0.5):
+            if ((OptIA.MAX_AGE < c.get_age()) and (random.random() < 1.0 -
+                                                  1.0/OptIA.MAX_POP)):
                 self.hyp_pop.remove(c)
 
     def select(self):
