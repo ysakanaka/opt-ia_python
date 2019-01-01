@@ -169,8 +169,7 @@ class OptIA:
                           * random.randint(1, 3) * random.gauss(0, 1)
                     mutated_coordinate = np.append(mutated_coordinate, val)
                 if (all(0 < x for x in (np.array(mutated_coordinate) -
-                                        self.LBOUNDS))) and \
-                        (all(0 < y for y in
+                                        self.LBOUNDS))) and (all(0 < y for y in
                              (self.UBOUNDS - np.array(mutated_coordinate)))):
                     break
 
