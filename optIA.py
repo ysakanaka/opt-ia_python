@@ -197,17 +197,65 @@ class OptIA:
         mutated_coordinates = []
 
         for original in self.clo_pop:
-            mutated_coordinates = None
+            mutated_coordinate = []
+            if random.random() < -2.0:
+                mutated_coordinate = np.array([original.get_coordinates()[d]
+                                               + (self.UBOUNDS[d]
+                                                  - self.LBOUNDS[d])/10.0 *
+                                               random.randint(0, 2) *
+                                               random.gauss(0, 1) for d in
+                                               range(self.DIMENSION)])
+
             for d in range(self.DIMENSION):
                 val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
-                                                 self.LBOUNDS[d])/100.0 * \
-                random.gauss(0, 1)
-                mutated_coordinates = np.append(mutated_coordinates, val)
+                                                    self.LBOUNDS[d])/85.0 \
+                        * random.randint(2, 3) * random.gauss(0, 1)
+                mutated_coordinate = np.append(mutated_coordinate, val)
+
+            while False:
+                mutated_coordinate = list(deap.tools.mutGaussian(
+                    original.get_coordinates().copy(), 0.5, 0.2, 0.5))[0]
+                if(all(0 < x for x in (np.array(mutated_coordinate) -
+                        self.LBOUNDS))) and (all(0 < y for y
+                        in (self.UBOUNDS - np.array(mutated_coordinate)))):
+                    break
+            while True:
+                mutated_coordinate = list(deap.tools.mutPolynomialBounded(
+                    original.get_coordinates().copy(), eta=0.00000001,
+                    low=self.LBOUNDS.tolist(), up=self.UBOUNDS.tolist(),
+                    indpb=0.5))[0]
+                if(all(0 < x for x in (np.array(mutated_coordinate) -
+                            self.LBOUNDS))) and (all(0 < y for y in
+                            (self.UBOUNDS - np.array(mutated_coordinate)))):
+                    break
+
+            mutated_coordinates += [list(mutated_coordinate.copy())]
+
+            if self.generation == 0:
+                self.best = self.clo_pop[0]
+                self.original_coordinates += [list(original.get_coordinates(
+                     ).copy())]
+                self.original_vals = np.append(self.original_vals,
+                                               original.get_val())
+
+        self.original_coordinates = np.array(self.original_coordinates)
+        self.original_coordinates = np.atleast_2d(self.original_coordinates)
+        mutated_coordinates = np.atleast_2d(np.array(mutated_coordinates))
+
+        original_coordinates_index = np.unique(self.original_coordinates,
+                                               axis=0, return_index=True)[1]
+        self.original_coordinates = [self.original_coordinates[
+                                         original_coordinates_index] for
+                                     original_coordinates_index in sorted(
+                original_coordinates_index)]
+        self.original_vals = [self.original_vals[original_coordinates_index] for
+                              original_coordinates_index in sorted(
+                                  original_coordinates_index)]
 
         vals_pred = []
         deviations = []
 
-        if self.SURROGATE_ASSIST:
+        if False:
             self.gp.fit(self.original_coordinates, self.original_vals)
             vals_pred, deviations = self.gp.predict(mutated_coordinates,
                                                return_std=True)
@@ -215,7 +263,7 @@ class OptIA:
         mutated_val = 0
         for val_pred, deviation, mutated_coordinate, original in zip(
                 vals_pred, deviations, mutated_coordinates, self.clo_pop):
-            if self.SURROGATE_ASSIST:
+            if False:
                 if ((np.amin(self.best.get_val()) > np.amin(val_pred)) or (
                         3 < deviation) or self.generation > 103) or \
                         (self.generation < 1):
