@@ -176,7 +176,7 @@ class OptIA:
                                                                          self.UBOUNDS - np.array(
                                                                      mutated_coordinate)))):
                     break
-            while True:
+            while False:
                 mutated_coordinate = list(deap.tools.mutPolynomialBounded(
                     original.get_coordinates().copy(), eta=0.00000001,
                     low=self.LBOUNDS.tolist(), up=self.UBOUNDS.tolist(),
