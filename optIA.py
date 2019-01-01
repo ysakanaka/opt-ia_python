@@ -194,9 +194,7 @@ class OptIA:
 
     def hyper_mutate(self):
         self.hyp_pop.clear()
-        np_mutated_coordinates = None
         mutated_coordinates = []
-        local_original_vals = []
 
         for original in self.clo_pop:
             mutated_coordinate = []
@@ -221,7 +219,7 @@ class OptIA:
                         self.LBOUNDS))) and (all(0 < y for y
                         in (self.UBOUNDS - np.array(mutated_coordinate)))):
                     break
-            while False:
+            while True:
                 mutated_coordinate = list(deap.tools.mutPolynomialBounded(
                     original.get_coordinates().copy(), eta=0.00000001,
                     low=self.LBOUNDS.tolist(), up=self.UBOUNDS.tolist(),
@@ -305,31 +303,21 @@ class OptIA:
                                                       val_pred.copy(),
                                                       original.get_age()))
             else:
+                self.evalcount += 1
                 if self.fun.number_of_constraints > 0:
-                    c = self.fun.constraints(mutated_coordinate)
+                    c = self.fun.constraints(mutated_coordinates)
                     if c <= 0:
-                        self.evalcount += 1
-                        mutated_val = self.fun(mutated_coordinate)
-                        self.original_coordinates = np.append(
-                            self.original_coordinates, [list(
-                                mutated_coordinate.copy())], axis=0)
-                        self.original_vals = np.append(self.original_vals,
-                                                       mutated_val)
-                        self.update_searched_space(mutated_coordinate)
+                        mutated_val = self.fun(mutated_coordinates)
                 else:
-                    self.evalcount += 1
-                    mutated_val = self.fun(mutated_coordinate)
-                    self.original_coordinates = np.append(
-                        self.original_coordinates, [list(
-                            mutated_coordinate.copy())], axis=0)
-                    self.original_vals = np.append(self.original_vals,
-                                                   mutated_val)
-                    self.update_searched_space(mutated_coordinate)
+                    mutated_val = self.fun(mutated_coordinates)
+
+                # print("mutated val is", mutated_val)
+                # print("mutated coordinates is", mutated_coordinates)
                 if np.amin(mutated_val) < np.amin(original.get_val()):
-                    self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
+                    self.hyp_pop.append(cell.Cell(mutated_coordinates.copy(),
                                                   mutated_val.copy(), 0))
                 else:
-                    self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
+                    self.hyp_pop.append(cell.Cell(mutated_coordinates.copy(),
                                                   mutated_val.copy(),
                                                   original.get_age()))
 
@@ -386,7 +374,7 @@ class OptIA:
                     self.add_unsearched_candidate()
                 else:
                     self.hyper_mutate()
-            self.hyper_mutate_master()
+            self.hyper_mutate()
             self.hybrid_age()
             self.select()
             self.best = self.pop[0]
