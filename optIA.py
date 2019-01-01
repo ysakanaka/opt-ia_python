@@ -190,7 +190,7 @@ class OptIA:
 
             mutated_coordinates += [list(mutated_coordinate.copy())]
 
-         
+
             mutated_coordinates = np.atleast_2d(np.array(mutated_coordinates))
 
 
@@ -198,22 +198,23 @@ class OptIA:
             mutated_val = 0
 
     # TODO implement eval
+        for mutated_coordinate in mutated_coordinates:
             #print("Coordinates: ",mutated_coordinates)
             self.evalcount += 1
             if self.fun.number_of_constraints > 0:
-                c = self.fun.constraints(mutated_coordinates)
+                c = self.fun.constraints(mutated_coordinate)
                 if c <= 0:
-                    mutated_val = self.fun(mutated_coordinates)
+                    mutated_val = self.fun(mutated_coordinate)
             else:
-                mutated_val = self.fun(mutated_coordinates)
+                mutated_val = self.fun(mutated_coordinate)
 
             #print("mutated val is", mutated_val)
             #print("mutated coordinates is", mutated_coordinates)
             if np.amin(mutated_val) < np.amin(original.get_val()):
-                self.hyp_pop.append(cell.Cell(mutated_coordinates.copy(),
+                self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
                                               mutated_val.copy(), 0))
             else:
-                self.hyp_pop.append(cell.Cell(mutated_coordinates.copy(),
+                self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
                                               mutated_val.copy(),
                                               original.get_age()))
 
