@@ -190,22 +190,10 @@ class OptIA:
 
             mutated_coordinates += [list(mutated_coordinate.copy())]
 
-            self.original_coordinates = np.array(self.original_coordinates)
-            self.original_coordinates = np.atleast_2d(
-                self.original_coordinates)
+         
             mutated_coordinates = np.atleast_2d(np.array(mutated_coordinates))
 
-            original_coordinates_index = np.unique(self.original_coordinates,
-                                                   axis=0, return_index=True)[
-                1]
-            self.original_coordinates = [self.original_coordinates[
-                                             original_coordinates_index] for
-                                         original_coordinates_index in sorted(
-                    original_coordinates_index)]
-            self.original_vals = [
-                self.original_vals[original_coordinates_index] for
-                original_coordinates_index in sorted(
-                    original_coordinates_index)]
+
 
             mutated_val = 0
 
