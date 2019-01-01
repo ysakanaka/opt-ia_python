@@ -162,11 +162,17 @@ class OptIA:
                                                random.randint(0, 2) *
                                                random.gauss(0, 1) for d in
                                                range(self.DIMENSION)])
-            for d in range(self.DIMENSION):
-                val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
-                                                       self.LBOUNDS[d])/85.0 \
-                      * random.randint(1, 3) * random.gauss(0, 1)
-                mutated_coordinate = np.append(mutated_coordinate, val)
+            while True:
+                for d in range(self.DIMENSION):
+                    val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
+                                                           self.LBOUNDS[d])/85.0 \
+                          * random.randint(1, 3) * random.gauss(0, 1)
+                    mutated_coordinate = np.append(mutated_coordinate, val)
+                if (all(0 < x for x in (np.array(mutated_coordinate) -
+                                        self.LBOUNDS))) and \
+                        (all(0 < y for y in
+                             (self.UBOUNDS - np.array(mutated_coordinate)))):
+                    break
 
             while False:
                 mutated_coordinate = list(deap.tools.mutGaussian(
@@ -175,7 +181,7 @@ class OptIA:
                         self.LBOUNDS))) and (all(0 < y for y
                         in (self.UBOUNDS - np.array(mutated_coordinate)))):
                     break
-            while True:
+            while False:
                 mutated_coordinate = list(deap.tools.mutPolynomialBounded(
                     original.get_coordinates().copy(), eta=0.00000001,
                     low=self.LBOUNDS.tolist(), up=self.UBOUNDS.tolist(),
