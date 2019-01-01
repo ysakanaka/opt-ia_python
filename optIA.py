@@ -147,6 +147,51 @@ class OptIA:
             for e in c:
                 self.clo_pop.append(e)
 
+    def hyper_mutate_master(self):
+        self.hyp_pop.clear()
+        for original in self.clo_pop:
+            mutated_coordinates = None
+            for d in range(self.DIMENSION):
+                val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
+                                                 self.LBOUNDS[d])/100.0 * \
+                random.gauss(0, 1)
+                mutated_coordinates = np.append(mutated_coordinates, val)
+
+            #mutated_coordinates = original.get_coordinates() + (
+                    #self.UBOUNDS - self.LBOUNDS)/100.0 * random.gauss(0, 1)
+            mutated_coordinates = np.delete(mutated_coordinates, 0)
+            #print("original", original.get_coordinates())
+            #print("mutated", mutated_coordinates)
+            # TODO Confirm comparing multiple dimension elements
+            if (mutated_coordinates < self.LBOUNDS).all():
+                mutated_coordinates = self.LBOUNDS
+                print("error")
+            elif (mutated_coordinates > self.UBOUNDS).all():
+                print("error")
+                mutated_coordinates = self.UBOUNDS
+
+            mutated_val = 0
+
+    # TODO implement eval
+            #print("Coordinates: ",mutated_coordinates)
+            self.evalcount += 1
+            if self.fun.number_of_constraints > 0:
+                c = self.fun.constraints(mutated_coordinates)
+                if c <= 0:
+                    mutated_val = self.fun(mutated_coordinates)
+            else:
+                mutated_val = self.fun(mutated_coordinates)
+
+            #print("mutated val is", mutated_val)
+            #print("mutated coordinates is", mutated_coordinates)
+            if np.amin(mutated_val) < np.amin(original.get_val()):
+                self.hyp_pop.append(cell.Cell(mutated_coordinates.copy(),
+                                              mutated_val.copy(), 0))
+            else:
+                self.hyp_pop.append(cell.Cell(mutated_coordinates.copy(),
+                                              mutated_val.copy(),
+                                              original.get_age()))
+
     def hyper_mutate(self):
         self.hyp_pop.clear()
         np_mutated_coordinates = None
@@ -341,7 +386,7 @@ class OptIA:
                     self.add_unsearched_candidate()
                 else:
                     self.hyper_mutate()
-            self.hyper_mutate()
+            self.hyper_mutate_master()
             self.hybrid_age()
             self.select()
             self.best = self.pop[0]
