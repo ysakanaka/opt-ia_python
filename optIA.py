@@ -222,8 +222,8 @@ class OptIA:
                                                     return_std=True)
 
     # TODO implement eval
-        for mutated_coordinate, original in zip(mutated_coordinates,
-                                                self.clo_pop):
+        for val_pred, deviation, mutated_coordinate, original in zip(
+                vals_pred, deviations, mutated_coordinates, self.clo_pop):
             #print("Coordinates: ",mutated_coordinates)
             self.evalcount += 1
             if self.fun.number_of_constraints > 0:
@@ -243,6 +243,7 @@ class OptIA:
                         mutated_coordinate.copy())], axis=0)
                 self.original_vals = np.append(self.original_vals,
                                                mutated_val)
+                self.update_searched_space(mutated_coordinate)
 
             if np.amin(mutated_val) < np.amin(original.get_val()):
                 self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
