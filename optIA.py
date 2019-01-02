@@ -222,7 +222,8 @@ class OptIA:
                                                     return_std=True)
 
     # TODO implement eval
-        for mutated_coordinate in mutated_coordinates:
+        for mutated_coordinate, original in zip(mutated_coordinates,
+                                                self.clo_pop):
             #print("Coordinates: ",mutated_coordinates)
             self.evalcount += 1
             if self.fun.number_of_constraints > 0:
@@ -244,6 +245,8 @@ class OptIA:
                 self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
                                               mutated_val.copy(),
                                               original.get_age()))
+
+
 
 
     def hyper_mutate(self):
