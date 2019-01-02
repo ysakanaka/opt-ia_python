@@ -222,6 +222,11 @@ class OptIA:
                                                     return_std=True)
 
     # TODO implement eval
+        logger.critical('mutated_coordinate len %s',
+                        mutated_coordinates.__len__())
+        logger.critical('original len  %s', self.clo_pop.__len__())
+        logger.critical('val_pred len %s', vals_pred.__len__())
+        logger.critical('deviation len %s', deviations.__len__())
         for mutated_coordinate, original, val_pred, deviation, in zip(
                 mutated_coordinates, self.clo_pop, vals_pred, deviations):
             #print("Coordinates: ",mutated_coordinates)
@@ -230,10 +235,7 @@ class OptIA:
             logger.critical('val_pred %s', val_pred)
             logger.critical('deviation %s', deviation)
 
-            logger.critical('mutated_coordinate len %s', mutated_coordinates.__len__())
-            logger.critical('original len  %s', self.clo_pop.__len__())
-            logger.critical('val_pred len %s', vals_pred.__len__())
-            logger.critical('deviation len %s', deviations.__len__())
+
             self.evalcount += 1
             if self.fun.number_of_constraints > 0:
                 c = self.fun.constraints(mutated_coordinate)
