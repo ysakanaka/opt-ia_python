@@ -465,7 +465,7 @@ class OptIA:
                     self.add_unsearched_candidate()
                 else:
                     self.hyper_mutate()
-            self.hyper_mutate_master()
+            self.hyper_mutate()
             self.hybrid_age()
             self.select()
             self.best = self.pop[0]
