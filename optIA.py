@@ -222,8 +222,8 @@ class OptIA:
                                                     return_std=True)
 
     # TODO implement eval
-        for mutated_coordinate, original in zip(mutated_coordinates,
-                                                self.clo_pop):
+        for mutated_coordinate, original, val_pred, deviation, in zip(
+                mutated_coordinates, self.clo_pop, vals_pred, deviations):
             #print("Coordinates: ",mutated_coordinates)
             self.evalcount += 1
             if self.fun.number_of_constraints > 0:
@@ -447,7 +447,7 @@ class OptIA:
                     self.add_unsearched_candidate()
                 else:
                     self.hyper_mutate()
-            self.hyper_mutate()
+            self.hyper_mutate_master()
             self.hybrid_age()
             self.select()
             self.best = self.pop[0]
