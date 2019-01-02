@@ -220,6 +220,9 @@ class OptIA:
             self.gp.fit(self.original_coordinates, self.original_vals)
             vals_pred, deviations = self.gp.predict(mutated_coordinates,
                                                     return_std=True)
+        else:
+            vals_pred = mutated_coordinates
+            deviations = mutated_coordinates
 
     # TODO implement eval
         logger.critical('mutated_coordinate len %s',
@@ -333,6 +336,9 @@ class OptIA:
             self.gp.fit(self.original_coordinates, self.original_vals)
             vals_pred, deviations = self.gp.predict(mutated_coordinates,
                                                return_std=True)
+        else:
+            vals_pred = mutated_coordinates
+            deviations = mutated_coordinates
 
         mutated_val = 0
         for mutated_coordinate, original, val_pred, deviation, in zip(
