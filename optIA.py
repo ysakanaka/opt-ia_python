@@ -243,7 +243,6 @@ class OptIA:
                         mutated_coordinate.copy())], axis=0)
                 self.original_vals = np.append(self.original_vals,
                                                mutated_val)
-                self.update_searched_space(mutated_coordinate)
 
             if np.amin(mutated_val) < np.amin(original.get_val()):
                 self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
