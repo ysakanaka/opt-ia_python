@@ -222,25 +222,75 @@ class OptIA:
                                                     return_std=True)
 
     # TODO implement eval
-        for mutated_coordinate in mutated_coordinates:
-            #print("Coordinates: ",mutated_coordinates)
-            self.evalcount += 1
-            if self.fun.number_of_constraints > 0:
-                c = self.fun.constraints(mutated_coordinate)
-                if c <= 0:
+        for val_pred, deviation, mutated_coordinate, original in zip(
+                vals_pred, deviations, mutated_coordinates, self.clo_pop):
+            if self.SURROGATE_ASSIST:
+                if ((np.amin(self.best.get_val()) > np.amin(val_pred)) or (
+                        3 < deviation) or self.generation > 103) or \
+                        (self.generation < 1):
+                    if self.fun.number_of_constraints > 0:
+                        c = self.fun.constraints(mutated_coordinate)
+                        if c <= 0:
+                            self.evalcount += 1
+                            mutated_val = self.fun(mutated_coordinate)
+                            self.original_coordinates = np.append(
+                                self.original_coordinates, [list(
+                                    mutated_coordinate.copy())], axis=0)
+                            self.original_vals = np.append(self.original_vals,
+                                                           mutated_val)
+                            self.update_searched_space(mutated_coordinate)
+                    else:
+                        self.evalcount += 1
+                        mutated_val = self.fun(mutated_coordinate)
+                        self.original_coordinates = np.append(
+                            self.original_coordinates, [list(
+                                mutated_coordinate.copy())], axis=0)
+                        self.original_vals = np.append(self.original_vals,
+                                                       mutated_val)
+                        self.update_searched_space(mutated_coordinate)
+                    if np.amin(mutated_val) < np.amin(original.get_val()):
+                        self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
+                                                      mutated_val.copy(), 0))
+                    else:
+                        self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
+                                                      mutated_val.copy(),
+                                                      original.get_age()))
+                else:
+                    if np.amin(val_pred) < np.amin(original.get_val()):
+                        self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
+                                                      val_pred.copy(), 0))
+                    else:
+                        self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
+                                                      val_pred.copy(),
+                                                      original.get_age()))
+            else:
+                if self.fun.number_of_constraints > 0:
+                    c = self.fun.constraints(mutated_coordinate)
+                    if c <= 0:
+                        self.evalcount += 1
+                        mutated_val = self.fun(mutated_coordinate)
+                        self.original_coordinates = np.append(
+                            self.original_coordinates, [list(
+                                mutated_coordinate.copy())], axis=0)
+                        self.original_vals = np.append(self.original_vals,
+                                                       mutated_val)
+                        self.update_searched_space(mutated_coordinate)
+                else:
+                    self.evalcount += 1
                     mutated_val = self.fun(mutated_coordinate)
-            else:
-                mutated_val = self.fun(mutated_coordinate)
-
-            #print("mutated val is", mutated_val)
-            #print("mutated coordinates is", mutated_coordinates)
-            if np.amin(mutated_val) < np.amin(original.get_val()):
-                self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
-                                              mutated_val.copy(), 0))
-            else:
-                self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
-                                              mutated_val.copy(),
-                                              original.get_age()))
+                    self.original_coordinates = np.append(
+                        self.original_coordinates, [list(
+                            mutated_coordinate.copy())], axis=0)
+                    self.original_vals = np.append(self.original_vals,
+                                                   mutated_val)
+                    self.update_searched_space(mutated_coordinate)
+                if np.amin(mutated_val) < np.amin(original.get_val()):
+                    self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
+                                                  mutated_val.copy(), 0))
+                else:
+                    self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
+                                                  mutated_val.copy(),
+                                                  original.get_age()))
 
     def hyper_mutate(self):
         self.hyp_pop.clear()
