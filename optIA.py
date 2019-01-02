@@ -176,7 +176,7 @@ class OptIA:
                                                                          self.UBOUNDS - np.array(
                                                                      mutated_coordinate)))):
                     break
-            while False:
+            while True:
                 mutated_coordinate = list(deap.tools.mutPolynomialBounded(
                     original.get_coordinates().copy(), eta=0.00000001,
                     low=self.LBOUNDS.tolist(), up=self.UBOUNDS.tolist(),
@@ -190,12 +190,36 @@ class OptIA:
 
             mutated_coordinates += [list(mutated_coordinate.copy())]
 
+            if self.generation == 0:
+                self.best = self.clo_pop[0]
+                self.original_coordinates += [list(original.get_coordinates(
+                     ).copy())]
+                self.original_vals = np.append(self.original_vals,
+                                               original.get_val())
 
-            mutated_coordinates = np.atleast_2d(np.array(mutated_coordinates))
+        self.original_coordinates = np.array(self.original_coordinates)
+        self.original_coordinates = np.atleast_2d(self.original_coordinates)
+        mutated_coordinates = np.atleast_2d(np.array(mutated_coordinates))
 
+        original_coordinates_index = np.unique(self.original_coordinates,
+                                               axis=0, return_index=True)[1]
+        self.original_coordinates = [self.original_coordinates[
+                                         original_coordinates_index] for
+                                     original_coordinates_index in sorted(
+                original_coordinates_index)]
+        self.original_vals = [self.original_vals[original_coordinates_index]
+                              for
+                              original_coordinates_index in sorted(
+                original_coordinates_index)]
+        mutated_val = 0
 
+        vals_pred = []
+        deviations = []
 
-            mutated_val = 0
+        if self.SURROGATE_ASSIST:
+            self.gp.fit(self.original_coordinates, self.original_vals)
+            vals_pred, deviations = self.gp.predict(mutated_coordinates,
+                                                    return_std=True)
 
     # TODO implement eval
         for mutated_coordinate in mutated_coordinates:
