@@ -443,6 +443,7 @@ class OptIA:
     def opt_ia(self, budget):  # TODO Chunk system
         logging.basicConfig()
         logging.getLogger("optIA").setLevel(level=logging.CRITICAL)
+        logger.critical('logging critical')
         # TODO Confirm warnings
         import warnings
         warnings.filterwarnings('ignore')
