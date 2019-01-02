@@ -230,6 +230,12 @@ class OptIA:
                 c = self.fun.constraints(mutated_coordinate)
                 if c <= 0:
                     mutated_val = self.fun(mutated_coordinate)
+                    self.original_coordinates = np.append(
+                        self.original_coordinates, [list(
+                            mutated_coordinate.copy())], axis=0)
+                    self.original_vals = np.append(self.original_vals,
+                                                   mutated_val)
+                    self.update_searched_space(mutated_coordinate)
             else:
                 mutated_val = self.fun(mutated_coordinate)
                 self.original_coordinates = np.append(
