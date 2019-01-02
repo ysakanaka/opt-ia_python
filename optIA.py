@@ -324,8 +324,8 @@ class OptIA:
                                                return_std=True)
 
         mutated_val = 0
-        for val_pred, deviation, mutated_coordinate, original in zip(
-                vals_pred, deviations, mutated_coordinates, self.clo_pop):
+        for mutated_coordinate, original, val_pred, deviation, in zip(
+                mutated_coordinates, self.clo_pop, vals_pred, deviations):
             if self.SURROGATE_ASSIST:
                 if ((np.amin(self.best.get_val()) > np.amin(val_pred)) or (
                         3 < deviation) or self.generation > 103) or \
@@ -447,7 +447,7 @@ class OptIA:
                     self.add_unsearched_candidate()
                 else:
                     self.hyper_mutate()
-            self.hyper_mutate_master()
+            self.hyper_mutate()
             self.hybrid_age()
             self.select()
             self.best = self.pop[0]
