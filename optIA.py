@@ -222,8 +222,8 @@ class OptIA:
                                                     return_std=True)
 
     # TODO implement eval
-        for val_pred, deviation, mutated_coordinate, original in zip(
-                vals_pred, deviations, mutated_coordinates, self.clo_pop):
+        for mutated_coordinate, original in zip(mutated_coordinates,
+                                                self.clo_pop):
             #print("Coordinates: ",mutated_coordinates)
             self.evalcount += 1
             if self.fun.number_of_constraints > 0:
