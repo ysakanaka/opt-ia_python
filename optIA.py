@@ -303,7 +303,7 @@ class OptIA:
                     original.get_coordinates().copy(), eta=0.00000001,
                     low=self.LBOUNDS.tolist(), up=self.UBOUNDS.tolist(),
                     indpb=0.5))[0]
-                logger.critical('mutated values %s', mutated_coordinates)
+                logger.critical('mutated values %s', mutated_coordinate)
                 if(all(0 < x for x in (np.array(mutated_coordinate) -
                             self.LBOUNDS))) and (all(0 < y for y in
                             (self.UBOUNDS - np.array(mutated_coordinate)))):
