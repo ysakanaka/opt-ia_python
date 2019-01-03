@@ -129,7 +129,7 @@ class OptIA:
                                                            OptIA.MAX_POP))*(
              self.UBOUNDS-self.LBOUNDS)/4
         else:
-            coordinates = self.LBOUNDS + (self.LBOUNDS - self.UBOUNDS) * \
+            coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
                           np.random.rand(OptIA.MAX_POP, self.DIMENSION)
 
         # TODO modify generation phase
@@ -438,7 +438,7 @@ class OptIA:
             self.pop.remove(worst)
 
         while self.MAX_POP > len(self.pop):
-            coordinates = self.LBOUNDS + (self.LBOUNDS - self.UBOUNDS) * \
+            coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
                           np.random.rand(1, self.DIMENSION)
             val = None
             if self.fun.number_of_constraints > 0:
