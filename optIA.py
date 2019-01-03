@@ -32,6 +32,7 @@ class OptIA:
     SURROGATE_ASSIST = False
     RESET_AGE = False
     SEARCHSPACE_ASSIST = False
+    SOBOL_SEQ_GENERATION = True
 
     pop = []
     clo_pop = []
@@ -101,7 +102,7 @@ class OptIA:
                                           mutated_val.copy(), 0))
 
     def __init__(self, fun, lbounds, ubounds, ra=False, ssa=False,
-                 sua=False):
+                 sua=False, sobol=True):
         self.fun = fun
         self.LBOUNDS = lbounds
         self.UBOUNDS = ubounds
@@ -110,6 +111,7 @@ class OptIA:
         self.RESET_AGE = ra
         self.SEARCHSPACE_ASSIST = ssa
         self.SURROGATE_ASSIST = sua
+        self.SOBOL_SEQ_GENERATION = sobol
         self.pop.clear()
         self.clo_pop.clear()
         self.hyp_pop.clear()
@@ -122,9 +124,13 @@ class OptIA:
         self.all_best_generation = 0
 
         # TODO Confirm the parameters for sobol_seq
-        coordinates = norm.ppf(sobol_seq.i4_sobol_generate(self.DIMENSION,
+        if self.SOBOL_SEQ_GENERATION:
+            coordinates = norm.ppf(sobol_seq.i4_sobol_generate(self.DIMENSION,
                                                            OptIA.MAX_POP))*(
-            self.UBOUNDS-self.LBOUNDS)/4
+             self.UBOUNDS-self.LBOUNDS)/4
+        else:
+            coordinates = self.LBOUNDS + (self.LBOUNDS - self.UBOUNDS) * \
+                          np.random.rand(OptIA.MAX_POP, self.DIMENSION)
 
         # TODO modify generation phase
         for coordinate in coordinates:
@@ -265,9 +271,6 @@ class OptIA:
                 self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
                                               mutated_val.copy(),
                                               original.get_age()))
-
-
-
 
     def hyper_mutate(self):
         self.hyp_pop.clear()
@@ -436,7 +439,7 @@ class OptIA:
             self.pop.remove(worst)
 
         while self.MAX_POP > len(self.pop):
-            coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
+            coordinates = self.LBOUNDS + (self.LBOUNDS - self.UBOUNDS) * \
                           np.random.rand(1, self.DIMENSION)
             val = None
             if self.fun.number_of_constraints > 0:
@@ -451,7 +454,6 @@ class OptIA:
     def opt_ia(self, budget):  # TODO Chunk system
         logging.basicConfig()
         logging.getLogger("optIA").setLevel(level=logging.CRITICAL)
-        logger.critical('logging critical')
         # TODO Confirm warnings
         import warnings
         warnings.filterwarnings('ignore')
