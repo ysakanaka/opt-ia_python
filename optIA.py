@@ -460,13 +460,14 @@ class OptIA:
         while budget > 0:
             self.evalcount = 0
             self.clone(2)
-            if OptIA.SEARCHSPACE_ASSIST:
+            if OptIA.SEARCHSPACE_ASSIST:  # TODO Condition?
                 if self.is_unsearched_space() and (10 < self.generation) and \
                             (10 < self.all_best_generation):
                     self.add_unsearched_candidate()
                 else:
                     self.hyper_mutate()
-            self.hyper_mutate()
+            else:
+                self.hyper_mutate()
             self.hybrid_age()
             self.select()
             self.best = self.pop[0]
