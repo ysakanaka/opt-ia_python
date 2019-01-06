@@ -53,7 +53,7 @@ class OptIA:
             elif pos[d] < -4:
                 pos[d] = -4  # TODO should be modify
         try:
-            self.searched_space[4][4] += 1
+            self.searched_space[pos[0]][pos[1]] += 1
 
         except IndexError:
             print(new_coordinate)
@@ -452,7 +452,7 @@ class OptIA:
 
     def opt_ia(self, budget):  # TODO Chunk system
         logging.basicConfig()
-        logging.getLogger("optIA").setLevel(level=logging.CRITICAL)
+        logging.getLogger("optIA").setLevel(level=logging.DEBUG)
         # TODO Confirm warnings
         import warnings
         warnings.filterwarnings('ignore')
