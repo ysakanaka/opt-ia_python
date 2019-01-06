@@ -82,7 +82,7 @@ class OptIA:
                 self.gp.fit(self.original_coordinates, self.original_vals)
                 vals_pred, deviations = self.gp.predict(candidate,
                                                         return_std=True)
-                if deviations[0] < 3 and np.amin(self.best.get_val()) < \
+                if deviations[0] < 2 and np.amin(self.best.get_val()) < \
                         np.amin(vals_pred[0]):
                     self.update_searched_space(candidate)
                     self.hyp_pop.append(cell.Cell(candidate.copy(),
@@ -358,8 +358,7 @@ class OptIA:
                 mutated_coordinates, self.clo_pop, vals_pred, deviations):
             if self.SURROGATE_ASSIST:
                 if ((np.amin(self.best.get_val()) > np.amin(val_pred)) or (
-                        3 < deviation) or self.generation > 500) or \
-                        (self.generation < 1):
+                        2 < deviation) or self.generation > 500):
                     if self.fun.number_of_constraints > 0:
                         c = self.fun.constraints(mutated_coordinate)
                         if c <= 0:
@@ -515,5 +514,6 @@ class OptIA:
                 logger.debug(np.amin(self.best.get_val()))
                 logger.debug(np.amin(self.all_best.get_val()))
                 logger.debug(self.all_best_generation)
+                logger.debug('budget is %s', budget)
 
         return self.best.get_coordinates()
