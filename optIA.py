@@ -77,26 +77,37 @@ class OptIA:
                     self.UBOUNDS[d] - self.LBOUNDS[d])/5*pos[d],
                     self.LBOUNDS[d] + (self.UBOUNDS[d] - self.LBOUNDS[
                         d])/5*(pos[d]+1)))
+
+            if self.SURROGATE_ASSIST:
+                self.gp.fit(self.original_coordinates, self.original_vals)
+                vals_pred, deviations = self.gp.predict(candidate,
+                                                        return_std=True)
+                if deviations[0] < 3 and np.amin(self.best.get_val()) < \
+                        np.amin(vals_pred[0]):
+                    self.update_searched_space(candidate)
+                    self.hyp_pop.append(cell.Cell(candidate.copy(),
+                                                  vals_pred[0].copy(), 0))
+                    continue
+
             if self.fun.number_of_constraints > 0:
                 c = self.fun.constraints(candidate)
                 if c <= 0:
                     self.evalcount += 1
                     mutated_val = self.fun(candidate)
-                    #self.original_coordinates = np.append(
-                        #self.original_coordinates, [list(
-                            #candidate.copy())], axis=0)
-                    #self.original_vals = np.append(self.original_vals,
-                                                #   mutated_val)
+                    self.original_coordinates = np.append(
+                        self.original_coordinates, [list(
+                            candidate.copy())], axis=0)
+                    self.original_vals = np.append(self.original_vals,
+                                                   mutated_val)
                     self.update_searched_space(candidate)
             else:
                 self.evalcount += 1
                 mutated_val = self.fun(candidate)
-
-                #self.original_coordinates = np.append(
-                    #self.original_coordinates, [list(
-                        #candidate.copy())], axis=0)
-                #self.original_vals = np.append(self.original_vals,
-                                      #         mutated_val)
+                self.original_coordinates = np.append(
+                    self.original_coordinates, [list(
+                        candidate.copy())], axis=0)
+                self.original_vals = np.append(self.original_vals,
+                                               mutated_val)
                 self.update_searched_space(candidate)
             self.hyp_pop.append(cell.Cell(candidate.copy(),
                                           mutated_val.copy(), 0))
