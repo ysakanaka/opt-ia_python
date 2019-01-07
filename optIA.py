@@ -358,7 +358,7 @@ class OptIA:
                 mutated_coordinates, self.clo_pop, vals_pred, deviations):
             if self.SURROGATE_ASSIST:
                 if ((np.amin(self.best.get_val()) > np.amin(val_pred)) or (
-                        2 < deviation) or self.generation > 2000):
+                        3 < deviation) or self.generation > 10000):
                     if self.fun.number_of_constraints > 0:
                         c = self.fun.constraints(mutated_coordinate)
                         if c <= 0:
