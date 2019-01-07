@@ -15,7 +15,7 @@ logger = logging.getLogger("optIA")
 
 
 class OptIA:
-    MAX_GENERATION = 10000
+    MAX_GENERATION = 1000000000
     MAX_POP = 20
     MAX_AGE = 6
     DIMENSION = None
