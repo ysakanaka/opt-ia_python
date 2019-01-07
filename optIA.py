@@ -82,19 +82,7 @@ class OptIA:
                 self.gp.fit(self.original_coordinates, self.original_vals)
                 vals_pred, deviations = self.gp.predict([candidate],
                                                         return_std=True)
-                if deviations[0] < 2 and np.amin(self.best.get_val()) < \
-                        np.amin(vals_pred[0]):
-                    self.update_searched_space(candidate)
-                    self.hyp_pop.append(cell.Cell(candidate.copy(),
-                                                  vals_pred[0].copy(), 0))
-                    continue
-
-
-            if self.SURROGATE_ASSIST:
-                self.gp.fit(self.original_coordinates, self.original_vals)
-                vals_pred, deviations = self.gp.predict([candidate],
-                                                        return_std=True)
-                if deviations[0] < 2 and np.amin(self.best.get_val()) < \
+                if deviations[0] < 3 and np.amin(self.best.get_val()) < \
                         np.amin(vals_pred[0]):
                     self.update_searched_space(candidate)
                     self.hyp_pop.append(cell.Cell(candidate.copy(),
