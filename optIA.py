@@ -43,7 +43,21 @@ class OptIA:
     searched_space = None
     gp = GaussianProcessRegressor()
 
-    def update_searched_space(self, new_coordinate):
+    def update_searched_space(self, new_coordinate, new_val):
+
+        if self.original_coordinates.__len__() < 1:
+            self.original_coordinates += [list(new_coordinate)]
+            self.original_vals = np.append(self.original_vals,
+                                           new_val)
+        elif self.original_coordinates.__len__() > 100:
+            pass
+        else:
+            self.original_coordinates = np.append(
+                self.original_coordinates, [list(
+                    new_coordinate)], axis=0)
+            self.original_vals = np.append(self.original_vals,
+                                           new_val)
+
         pos = [0 for i in range(2)]
         for d in range(2):
             pos[d] = int((new_coordinate[d] - self.LBOUNDS[d])/((
@@ -84,7 +98,7 @@ class OptIA:
                                                         return_std=True)
                 if deviations[0] < 3 and np.amin(self.best.get_val()) < \
                         np.amin(vals_pred[0]):
-                    self.update_searched_space(candidate)
+                    self.update_searched_space(candidate, vals_pred[0].copy())
                     self.hyp_pop.append(cell.Cell(candidate.copy(),
                                                   vals_pred[0].copy(), 0))
                     continue
@@ -94,21 +108,13 @@ class OptIA:
                 if c <= 0:
                     self.evalcount += 1
                     mutated_val = self.fun(candidate)
-                    self.original_coordinates = np.append(
-                        self.original_coordinates, [list(
-                            candidate.copy())], axis=0)
-                    self.original_vals = np.append(self.original_vals,
-                                                   mutated_val)
-                    self.update_searched_space(candidate)
+                    self.update_searched_space(candidate.copy(),
+                                               mutated_val.copy())
             else:
                 self.evalcount += 1
                 mutated_val = self.fun(candidate)
-                self.original_coordinates = np.append(
-                    self.original_coordinates, [list(
-                        candidate.copy())], axis=0)
-                self.original_vals = np.append(self.original_vals,
-                                               mutated_val)
-                self.update_searched_space(candidate)
+                self.update_searched_space(candidate.copy(),
+                                           mutated_val.copy())
             self.hyp_pop.append(cell.Cell(candidate.copy(),
                                           mutated_val.copy(), 0))
 
@@ -155,7 +161,7 @@ class OptIA:
                 val = self.fun(coordinate)
                 self.evalcount += 1
             self.pop.append(cell.Cell(coordinate.copy(), val.copy(), 0))
-            self.update_searched_space(coordinate)
+            self.update_searched_space(coordinate.copy(), val.copy())
 
     def clone(self, dup):
         self.clo_pop.clear()
@@ -163,124 +169,6 @@ class OptIA:
             c = copy.deepcopy(self.pop)
             for e in c:
                 self.clo_pop.append(e)
-
-    def hyper_mutate_master(self):
-        self.hyp_pop.clear()
-        mutated_coordinates = []
-
-        for original in self.clo_pop:
-            mutated_coordinate = []
-            if random.random() < -2.0:
-                mutated_coordinate = np.array([original.get_coordinates()[d]
-                                               + (self.UBOUNDS[d]
-                                                  - self.LBOUNDS[d]) / 10.0 *
-                                               random.randint(0, 2) *
-                                               random.gauss(0, 1) for d in
-                                               range(self.DIMENSION)])
-
-            for d in range(self.DIMENSION):
-                val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
-                                                       self.LBOUNDS[d]) / 85.0 \
-                      * random.randint(2, 3) * random.gauss(0, 1)
-                mutated_coordinate = np.append(mutated_coordinate, val)
-
-            while False:
-                mutated_coordinate = list(deap.tools.mutGaussian(
-                    original.get_coordinates().copy(), 0.5, 0.2, 0.5))[0]
-                if (all(0 < x for x in (np.array(mutated_coordinate) -
-                                        self.LBOUNDS))) and (all(0 < y for y
-                                                                 in (
-                                                                         self.UBOUNDS - np.array(
-                                                                     mutated_coordinate)))):
-                    break
-            while True:
-                mutated_coordinate = list(deap.tools.mutPolynomialBounded(
-                    original.get_coordinates().copy(), eta=0.00000001,
-                    low=self.LBOUNDS.tolist(), up=self.UBOUNDS.tolist(),
-                    indpb=0.5))[0]
-                logger.critical('mutated values %s', mutated_coordinates)
-                if (all(0 < x for x in (np.array(mutated_coordinate) -
-                                        self.LBOUNDS))) and (all(0 < y for y in
-                            (self.UBOUNDS - np.array(mutated_coordinate)))):
-                    break
-
-            mutated_coordinates += [list(mutated_coordinate.copy())]
-
-            if self.generation == 0:
-                self.best = self.clo_pop[0]
-                self.original_coordinates += [list(original.get_coordinates(
-                     ).copy())]
-                self.original_vals = np.append(self.original_vals,
-                                               original.get_val())
-
-        self.original_coordinates = np.array(self.original_coordinates)
-        self.original_coordinates = np.atleast_2d(self.original_coordinates)
-        mutated_coordinates = np.atleast_2d(np.array(mutated_coordinates))
-
-        original_coordinates_index = np.unique(self.original_coordinates,
-                                               axis=0, return_index=True)[1]
-        self.original_coordinates = [self.original_coordinates[
-                                         original_coordinates_index] for
-                                     original_coordinates_index in sorted(
-                original_coordinates_index)]
-        self.original_vals = [self.original_vals[original_coordinates_index]
-                              for
-                              original_coordinates_index in sorted(
-                original_coordinates_index)]
-        mutated_val = 0
-
-        vals_pred = []
-        deviations = []
-
-        if self.SURROGATE_ASSIST:
-            self.gp.fit(self.original_coordinates, self.original_vals)
-            vals_pred, deviations = self.gp.predict(mutated_coordinates,
-                                                    return_std=True)
-        else:
-            vals_pred = mutated_coordinates
-            deviations = mutated_coordinates
-
-    # TODO implement eval
-        logger.critical('mutated_coordinate len %s',
-                        mutated_coordinates.__len__())
-        logger.critical('original len  %s', self.clo_pop.__len__())
-        logger.critical('val_pred len %s', vals_pred.__len__())
-        logger.critical('deviation len %s', deviations.__len__())
-        for mutated_coordinate, original, val_pred, deviation, in zip(
-                mutated_coordinates, self.clo_pop, vals_pred, deviations):
-            #print("Coordinates: ",mutated_coordinates)
-            logger.critical('mutated_coordinate %s', mutated_coordinate)
-            logger.critical('original %s', original)
-            logger.critical('val_pred %s', val_pred)
-            logger.critical('deviation %s', deviation)
-
-
-            self.evalcount += 1
-            if self.fun.number_of_constraints > 0:
-                c = self.fun.constraints(mutated_coordinate)
-                if c <= 0:
-                    mutated_val = self.fun(mutated_coordinate)
-                    self.original_coordinates = np.append(
-                        self.original_coordinates, [list(
-                            mutated_coordinate.copy())], axis=0)
-                    self.original_vals = np.append(self.original_vals,
-                                                   mutated_val)
-                    self.update_searched_space(mutated_coordinate)
-            else:
-                mutated_val = self.fun(mutated_coordinate)
-                self.original_coordinates = np.append(
-                    self.original_coordinates, [list(
-                        mutated_coordinate.copy())], axis=0)
-                self.original_vals = np.append(self.original_vals,
-                                               mutated_val)
-
-            if np.amin(mutated_val) < np.amin(original.get_val()):
-                self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
-                                              mutated_val.copy(), 0))
-            else:
-                self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
-                                              mutated_val.copy(),
-                                              original.get_age()))
 
     def hyper_mutate(self):
         self.hyp_pop.clear()
@@ -323,10 +211,10 @@ class OptIA:
 
             if self.generation == 0:
                 self.best = self.clo_pop[0]
-                self.original_coordinates += [list(original.get_coordinates(
-                     ).copy())]
-                self.original_vals = np.append(self.original_vals,
-                                               original.get_val())
+                #self.original_coordinates += [list(original.get_coordinates(
+                     #).copy())]
+                #self.original_vals = np.append(self.original_vals,
+                                               #original.get_val())
 
         self.original_coordinates = np.array(self.original_coordinates)
         self.original_coordinates = np.atleast_2d(self.original_coordinates)
@@ -364,21 +252,13 @@ class OptIA:
                         if c <= 0:
                             self.evalcount += 1
                             mutated_val = self.fun(mutated_coordinate)
-                            self.original_coordinates = np.append(
-                                self.original_coordinates, [list(
-                                    mutated_coordinate.copy())], axis=0)
-                            self.original_vals = np.append(self.original_vals,
-                                                           mutated_val)
-                            self.update_searched_space(mutated_coordinate)
+                            self.update_searched_space(mutated_coordinate,
+                                                       mutated_val)
                     else:
                         self.evalcount += 1
                         mutated_val = self.fun(mutated_coordinate)
-                        self.original_coordinates = np.append(
-                            self.original_coordinates, [list(
-                                mutated_coordinate.copy())], axis=0)
-                        self.original_vals = np.append(self.original_vals,
-                                                       mutated_val)
-                        self.update_searched_space(mutated_coordinate)
+                        self.update_searched_space(mutated_coordinate,
+                                                   mutated_val)
                     if np.amin(mutated_val) < np.amin(original.get_val()):
                         self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
                                                       mutated_val.copy(), 0))
@@ -400,21 +280,12 @@ class OptIA:
                     if c <= 0:
                         self.evalcount += 1
                         mutated_val = self.fun(mutated_coordinate)
-                        self.original_coordinates = np.append(
-                            self.original_coordinates, [list(
-                                mutated_coordinate.copy())], axis=0)
-                        self.original_vals = np.append(self.original_vals,
-                                                       mutated_val)
-                        self.update_searched_space(mutated_coordinate)
+                        self.update_searched_space(mutated_coordinate,
+                                                   mutated_val)
                 else:
                     self.evalcount += 1
                     mutated_val = self.fun(mutated_coordinate)
-                    self.original_coordinates = np.append(
-                        self.original_coordinates, [list(
-                            mutated_coordinate.copy())], axis=0)
-                    self.original_vals = np.append(self.original_vals,
-                                                   mutated_val)
-                    self.update_searched_space(mutated_coordinate)
+                    self.update_searched_space(mutated_coordinate, mutated_val)
                 if np.amin(mutated_val) < np.amin(original.get_val()):
                     self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
                                                   mutated_val.copy(), 0))
@@ -462,7 +333,7 @@ class OptIA:
 
     def opt_ia(self, budget):  # TODO Chunk system
         logging.basicConfig()
-        logging.getLogger("optIA").setLevel(level=logging.CRITICAL)
+        logging.getLogger("optIA").setLevel(level=logging.DEBUG)
         # TODO Confirm warnings
         import warnings
         warnings.filterwarnings('ignore')
@@ -491,6 +362,8 @@ class OptIA:
             budget -= chunk
 
             logger.debug(self.searched_space)
+            logger.debug('stock values length %s',
+                         self.original_coordinates.__len__())
             logger.debug(self.pop.__len__())
             logger.debug(self.hyp_pop.__len__())
             logger.debug(self.clo_pop.__len__())
