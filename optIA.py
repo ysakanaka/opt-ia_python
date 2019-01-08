@@ -49,8 +49,6 @@ class OptIA:
             self.original_coordinates += [list(new_coordinate)]
             self.original_vals = np.append(self.original_vals,
                                            new_val)
-        elif self.original_coordinates.__len__() > 100:
-            pass
         else:
             self.original_coordinates = np.append(
                 self.original_coordinates, [list(
@@ -93,7 +91,11 @@ class OptIA:
                         d])/5*(pos[d]+1)))
 
             if self.SURROGATE_ASSIST:
-                self.gp.fit(self.original_coordinates, self.original_vals)
+                q, mod = divmod(self.generation, 1000)
+                if self.generation < 20:
+                    self.gp.fit(self.original_coordinates, self.original_vals)
+                elif mod == 0:
+                    self.gp.fit(self.original_coordinates, self.original_vals)
                 vals_pred, deviations = self.gp.predict([candidate],
                                                         return_std=True)
                 if deviations[0] < 3 and np.amin(self.best.get_val()) < \
@@ -234,7 +236,11 @@ class OptIA:
         deviations = []
 
         if self.SURROGATE_ASSIST:
-            self.gp.fit(self.original_coordinates, self.original_vals)
+            q, mod = divmod(self.generation, 1000)
+            if self.generation < 20:
+                self.gp.fit(self.original_coordinates, self.original_vals)
+            elif mod == 0:
+                self.gp.fit(self.original_coordinates, self.original_vals)
             vals_pred, deviations = self.gp.predict(mutated_coordinates,
                                                return_std=True)
         else:
@@ -246,7 +252,8 @@ class OptIA:
                 mutated_coordinates, self.clo_pop, vals_pred, deviations):
             if self.SURROGATE_ASSIST:
                 if ((np.amin(self.best.get_val()) > np.amin(val_pred)) or (
-                        3 < deviation) or self.generation > 50000):
+                        3/(1+self.generation/5000) < deviation) or
+                        self.generation > 50000):
                     if self.fun.number_of_constraints > 0:
                         c = self.fun.constraints(mutated_coordinate)
                         if c <= 0:
@@ -343,7 +350,7 @@ class OptIA:
             self.clone(2)
             if self.SEARCHSPACE_ASSIST:  # TODO Condition?
                 if self.is_unsearched_space() and (10 < self.generation) and \
-                            (100 < self.all_best_generation):
+                            (10 < self.all_best_generation):
                     self.add_unsearched_candidate()
                 else:
                     self.hyper_mutate()
