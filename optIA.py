@@ -49,6 +49,8 @@ class OptIA:
             self.original_coordinates += [list(new_coordinate)]
             self.original_vals = np.append(self.original_vals,
                                            new_val)
+        elif self.original_coordinates.__len__() > 500:
+            pass
         else:
             self.original_coordinates = np.append(
                 self.original_coordinates, [list(
