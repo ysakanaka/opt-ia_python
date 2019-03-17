@@ -1,14 +1,6 @@
 #!/usr/bin/env python3
 
-import sys
-import math
-import random
 import numpy as np
-import copy
-
-from deap import base
-from deap import creator
-from deap import tools
 
 
 class Cell:
