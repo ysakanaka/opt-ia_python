@@ -17,19 +17,21 @@ logger = logging.getLogger("optIA")
 class OptIA:
 
     def update_searched_space(self, new_coordinate, new_val):
-
         if self.original_coordinates.__len__() < 1:
             self.original_coordinates += [list(new_coordinate)]
             self.original_vals = np.append(self.original_vals,
                                            new_val)
         elif self.original_coordinates.__len__() > 500:
             pass
-        else:
+
+        elif self.generation % 20 == 0 or self.generation < 10:
             self.original_coordinates = np.append(
                 self.original_coordinates, [list(
                     new_coordinate)], axis=0)
             self.original_vals = np.append(self.original_vals,
                                            new_val)
+        else:
+            pass
 
         pos = [0, 0]
         for d in range(2):
@@ -217,9 +219,11 @@ class OptIA:
                                   original_coordinates_index)]
 
         if self.SURROGATE_ASSIST:
-            q, mod = divmod(self.generation, 1000)
+            q, mod = divmod(self.generation, 100)
             if self.generation < 20:
                 self.gp.fit(self.original_coordinates, self.original_vals)
+            elif self.original_coordinates.__len__() > 500:
+                pass
             elif mod == 0:
                 self.gp.fit(self.original_coordinates, self.original_vals)
             vals_pred, deviations = self.gp.predict(mutated_coordinates,
@@ -357,7 +361,6 @@ class OptIA:
             logger.debug(self.pop.__len__())
             logger.debug(self.hyp_pop.__len__())
             logger.debug(self.clo_pop.__len__())
-            logger.debug(budget)
 
             self.generation += 1
 
