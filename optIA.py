@@ -31,7 +31,7 @@ class OptIA:
             self.original_vals = np.append(self.original_vals,
                                            new_val)
 
-        pos = [0 for i in range(2)]
+        pos = [0, 0]
         for d in range(2):
             pos[d] = int((new_coordinate[d] - self.LBOUNDS[d])/((
              self.UBOUNDS[d] - self.LBOUNDS[d])/5))
@@ -128,8 +128,8 @@ class OptIA:
 
         # TODO Confirm the parameters for sobol_seq
         if self.SOBOL_SEQ_GENERATION:
-            coordinates = norm.ppf(sobol_seq.i4_sobol_generate(self.DIMENSION,
-                                                           self.MAX_POP))*(
+            coordinates = norm.ppf(sobol_seq.i4_sobol_generate(
+                self.DIMENSION, self.MAX_POP))*(
              self.UBOUNDS-self.LBOUNDS)/4
         else:
             coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
@@ -172,7 +172,7 @@ class OptIA:
 
             for d in range(self.DIMENSION):
                 val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
-                                                    self.LBOUNDS[d])/85.0 \
+                                                       self.LBOUNDS[d])/85.0 \
                         * random.randint(2, 3) * random.gauss(0, 1)
                 mutated_coordinate = np.append(mutated_coordinate, val)
 
@@ -180,27 +180,27 @@ class OptIA:
                 mutated_coordinate = list(deap.tools.mutGaussian(
                     original.get_coordinates().copy(), 0.5, 0.2, 0.5))[0]
                 if(all(0 < x for x in (np.array(mutated_coordinate) -
-                        self.LBOUNDS))) and (all(0 < y for y
-                        in (self.UBOUNDS - np.array(mutated_coordinate)))):
+                                       self.LBOUNDS))) \
+                        and (all(0 < y for y in
+                                 (self.UBOUNDS -
+                                  np.array(mutated_coordinate)))):
                     break
             while True:
                 mutated_coordinate = list(deap.tools.mutPolynomialBounded(
                     original.get_coordinates().copy(), eta=0.00000001,
                     low=self.LBOUNDS.tolist(), up=self.UBOUNDS.tolist(),
                     indpb=0.5))[0]
-                if(all(0 < x for x in (np.array(mutated_coordinate) -
-                            self.LBOUNDS))) and (all(0 < y for y in
-                            (self.UBOUNDS - np.array(mutated_coordinate)))):
+                if(all(0 < x for x in
+                       (np.array(mutated_coordinate) - self.LBOUNDS))) \
+                        and (all(0 < y for y
+                                 in (self.UBOUNDS -
+                                     np.array(mutated_coordinate)))):
                     break
 
             mutated_coordinates += [list(mutated_coordinate.copy())]
 
             if self.generation == 0:
                 self.best = self.clo_pop[0]
-                #self.original_coordinates += [list(original.get_coordinates(
-                     #).copy())]
-                #self.original_vals = np.append(self.original_vals,
-                                               #original.get_val())
 
         self.original_coordinates = np.array(self.original_coordinates)
         self.original_coordinates = np.atleast_2d(self.original_coordinates)
@@ -212,12 +212,9 @@ class OptIA:
                                          original_coordinates_index] for
                                      original_coordinates_index in sorted(
                 original_coordinates_index)]
-        self.original_vals = [self.original_vals[original_coordinates_index] for
-                              original_coordinates_index in sorted(
+        self.original_vals = [self.original_vals[original_coordinates_index]
+                              for original_coordinates_index in sorted(
                                   original_coordinates_index)]
-
-        vals_pred = []
-        deviations = []
 
         if self.SURROGATE_ASSIST:
             q, mod = divmod(self.generation, 1000)
@@ -226,7 +223,7 @@ class OptIA:
             elif mod == 0:
                 self.gp.fit(self.original_coordinates, self.original_vals)
             vals_pred, deviations = self.gp.predict(mutated_coordinates,
-                                               return_std=True)
+                                                    return_std=True)
         else:
             vals_pred = mutated_coordinates
             deviations = mutated_coordinates
@@ -251,20 +248,22 @@ class OptIA:
                         self.update_searched_space(mutated_coordinate,
                                                    mutated_val)
                     if np.amin(mutated_val) < np.amin(original.get_val()):
-                        self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
-                                                      mutated_val.copy(), 0))
+                        self.hyp_pop.append(
+                            cell.Cell(mutated_coordinate.copy(),
+                                      mutated_val.copy(), 0))
                     else:
-                        self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
-                                                      mutated_val.copy(),
-                                                      original.get_age()))
+                        self.hyp_pop.append(
+                            cell.Cell(mutated_coordinate.copy(),
+                                      mutated_val.copy(), original.get_age()))
                 else:
                     if np.amin(val_pred) < np.amin(original.get_val()):
-                        self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
-                                                      val_pred.copy(), 0))
+                        self.hyp_pop.append(
+                            cell.Cell(mutated_coordinate.copy(),
+                                      val_pred.copy(), 0))
                     else:
-                        self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
-                                                      val_pred.copy(),
-                                                      original.get_age()))
+                        self.hyp_pop.append(
+                            cell.Cell(mutated_coordinate.copy(),
+                                      val_pred.copy(), original.get_age()))
             else:
                 if self.fun.number_of_constraints > 0:
                     c = self.fun.constraints(mutated_coordinate)
