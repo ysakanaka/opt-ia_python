@@ -15,33 +15,6 @@ logger = logging.getLogger("optIA")
 
 
 class OptIA:
-    MAX_GENERATION = 1000000000
-    MAX_POP = 20
-    MAX_AGE = 10
-    DIMENSION = None
-    LBOUNDS = None
-    UBOUNDS = None
-    fun = None
-    evalcount = 0
-    generation = 0
-    best = None
-    all_best = None
-    all_best_generation = 0
-
-    GENOTYPE_DUP = True
-    SURROGATE_ASSIST = False
-    RESET_AGE = False
-    SEARCHSPACE_ASSIST = False
-    SOBOL_SEQ_GENERATION = True
-
-    pop = []
-    clo_pop = []
-    hyp_pop = []
-
-    original_coordinates = []
-    original_vals = []
-    searched_space = None
-    gp = GaussianProcessRegressor()
 
     def update_searched_space(self, new_coordinate, new_val):
 
@@ -124,11 +97,21 @@ class OptIA:
 
     def __init__(self, fun, lbounds, ubounds, ra=False, ssa=False,
                  sua=False, sobol=True):
+
+        self.MAX_GENERATION = 1000000000
+        self.MAX_POP = 20
+        self.MAX_AGE = 10
+        self.evalcount = 0
+        self.generation = 0
+        self.GENOTYPE_DUP = True
+        self.pop = []
+        self.clo_pop = []
+        self.hyp_pop = []
+        self.gp = GaussianProcessRegressor()
         self.fun = fun
         self.LBOUNDS = lbounds
         self.UBOUNDS = ubounds
         self.DIMENSION = len(lbounds)
-
         self.RESET_AGE = ra
         self.SEARCHSPACE_ASSIST = ssa
         self.SURROGATE_ASSIST = sua
@@ -136,7 +119,6 @@ class OptIA:
         self.pop.clear()
         self.clo_pop.clear()
         self.hyp_pop.clear()
-
         self.original_coordinates = []
         self.original_vals = []
         self.best = None
@@ -147,11 +129,11 @@ class OptIA:
         # TODO Confirm the parameters for sobol_seq
         if self.SOBOL_SEQ_GENERATION:
             coordinates = norm.ppf(sobol_seq.i4_sobol_generate(self.DIMENSION,
-                                                           OptIA.MAX_POP))*(
+                                                           self.MAX_POP))*(
              self.UBOUNDS-self.LBOUNDS)/4
         else:
             coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
-                          np.random.rand(OptIA.MAX_POP, self.DIMENSION)
+                          np.random.rand(self.MAX_POP, self.DIMENSION)
 
         # TODO modify generation phase
         for coordinate in coordinates:
@@ -306,13 +288,13 @@ class OptIA:
     def hybrid_age(self):
         for c in self.pop:
             c.add_age()
-            if ((OptIA.MAX_AGE < c.get_age()) and (random.random() < 1.0 -
-                                                  1.0/OptIA.MAX_POP)):
+            if ((self.MAX_AGE < c.get_age()) and (random.random() < 1.0 -
+                                                  1.0/self.MAX_POP)):
                 self.pop.remove(c)
         for c in self.hyp_pop:
             c.add_age()
-            if ((OptIA.MAX_AGE < c.get_age()) and (random.random() < 1.0 -
-                                                  1.0/OptIA.MAX_POP)):
+            if ((self.MAX_AGE < c.get_age()) and (random.random() < 1.0 -
+                                                  1.0/self.MAX_POP)):
                 self.hyp_pop.remove(c)
 
     def select(self):
@@ -364,7 +346,7 @@ class OptIA:
             for c in self.pop:
                 if np.amin(c.get_val()) < np.amin(self.best.get_val()):
                     self.best = c
-            if OptIA.RESET_AGE:
+            if self.RESET_AGE:
                 self.best.reset_age()
 
             chunk = self.evalcount
