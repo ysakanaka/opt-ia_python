@@ -118,6 +118,7 @@ class OptIA:
         self.SEARCHSPACE_ASSIST = ssa
         self.SURROGATE_ASSIST = sua
         self.SOBOL_SEQ_GENERATION = sobol
+        self.GRADIENT_DESCENT = True
         self.pop.clear()
         self.clo_pop.clear()
         self.hyp_pop.clear()
@@ -150,6 +151,34 @@ class OptIA:
                 self.evalcount += 1
             self.pop.append(cell.Cell(coordinate.copy(), val.copy(), 0))
             self.update_searched_space(coordinate.copy(), val.copy())
+
+    def calculate_gradient(self, x):
+        h = 1e-4
+        x = np.array(x)
+        gradient = np.zeros_like(x)
+        for i in range(x.size):
+            store_x = x[:]
+
+            # f(x+h)
+            x[i] += h
+            f_x_plus_h = self.fun(x)
+
+            X = store_x[:]
+
+            # f(x-h)
+            x[i] -= h
+            f_x_minus_h = self.fun(x)
+            gradient[i] = (f_x_plus_h - f_x_minus_h)/(2*h)
+
+        return gradient
+
+    def gradient_descent(self, x):
+        max_iter = 10
+        learning_rate = 0.2
+        for i in range(max_iter):
+            x -= (learning_rate * self.calculate_gradient(x))
+
+        return x
 
     def clone(self, dup):
         self.clo_pop.clear()
@@ -187,7 +216,7 @@ class OptIA:
                                  (self.UBOUNDS -
                                   np.array(mutated_coordinate)))):
                     break
-            while True:
+            while False:
                 mutated_coordinate = list(deap.tools.mutPolynomialBounded(
                     original.get_coordinates().copy(), eta=0.00000001,
                     low=self.LBOUNDS.tolist(), up=self.UBOUNDS.tolist(),
@@ -198,6 +227,10 @@ class OptIA:
                                  in (self.UBOUNDS -
                                      np.array(mutated_coordinate)))):
                     break
+
+            if self.GRADIENT_DESCENT:
+                mutated_coordinate = \
+                    self.gradient_descent(original.get_coordinates())
 
             mutated_coordinates += [list(mutated_coordinate.copy())]
 
@@ -322,7 +355,7 @@ class OptIA:
                     val = self.fun(coordinates)
             else:
                 val = self.fun(coordinates[0])
-            self.pop.append(cell.Cell(coordinates[0], val, 0))
+            self.pop.append(cell.Cell(np.array(coordinates[0]), val, 0))
             self.evalcount += 1
 
     def opt_ia(self, budget):  # TODO Chunk system
