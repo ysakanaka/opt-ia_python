@@ -342,7 +342,7 @@ class OptIA:
 
     def opt_ia(self, budget):  # TODO Chunk system
         logging.basicConfig()
-        logging.getLogger("optIA").setLevel(level=logging.CRITICAL)
+        logging.getLogger("optIA").setLevel(level=logging.DEBUG)
         # TODO Confirm warnings
         import warnings
         warnings.filterwarnings('ignore')

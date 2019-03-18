@@ -4,9 +4,6 @@ import numpy as np
 
 
 class Cell:
-    coordinates = None
-    val = None
-    age = None
 
     def __init__(self, coord, v, a):
         self.coordinates = coord
@@ -29,7 +26,7 @@ class Cell:
         return [list(np.array(self.coordinates).copy())]
 
     def get_val(self):
-        return  self.val
+        return self.val
 
     def get_age(self):
         return self.age
@@ -39,5 +36,3 @@ class Cell:
 
     def reset_age(self):
         self.age = 0
-
-
