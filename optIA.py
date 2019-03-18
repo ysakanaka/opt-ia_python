@@ -122,7 +122,7 @@ class OptIA:
         self.original_coordinates = []
         self.original_vals = []
         self.best = None
-        self.searched_space = [[0 for i in range(5)] for j in range(5)]
+        self.searched_space = [[0 for _i in range(5)] for _j in range(5)]
         self.all_best = None
         self.all_best_generation = 0
 
