@@ -200,6 +200,7 @@ class OptIA:
 
         for original in self.clo_pop:
             mutated_coordinate = []
+            """
             if random.random() < -2.0:
                 mutated_coordinate = np.array([original.get_coordinates()[d]
                                                + (self.UBOUNDS[d]
@@ -213,6 +214,7 @@ class OptIA:
                                                        self.LBOUNDS[d])/85.0 \
                         * random.randint(2, 3) * random.gauss(0, 1)
                 mutated_coordinate = np.append(mutated_coordinate, val)
+            """
 
             while False:
                 mutated_coordinate = list(deap.tools.mutGaussian(
@@ -367,7 +369,7 @@ class OptIA:
 
     def opt_ia(self, budget):  # TODO Chunk system
         logging.basicConfig()
-        logging.getLogger("optIA").setLevel(level=logging.DEBUG)
+        logging.getLogger("optIA").setLevel(level=logging.CRITICAL)
         # TODO Confirm warnings
         import warnings
         warnings.filterwarnings('ignore')
