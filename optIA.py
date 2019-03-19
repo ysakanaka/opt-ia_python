@@ -177,6 +177,13 @@ class OptIA:
         learning_rate = 0.2
         for i in range(max_iter):
             x -= (learning_rate * self.calculate_gradient(x))
+            for j in range(self.DIMENSION):
+                if x[j] < self.LBOUNDS[j] or x[j] > self.UBOUNDS[j]:
+                    x += (learning_rate * self.calculate_gradient(x))
+                    break
+            else:
+                continue
+            break
 
         return x
 
