@@ -21,7 +21,7 @@ class OptIA:
             self.original_coordinates += [list(new_coordinate)]
             self.original_vals = np.append(self.original_vals,
                                            new_val)
-        elif self.original_coordinates.__len__() > 500:
+        elif self.original_coordinates.__len__() > 2000:
             pass
 
         elif self.generation % 20 == 0 or self.generation < 10:
@@ -183,13 +183,16 @@ class OptIA:
         return gradient
 
     def gradient_descent(self, x):
-        max_iter = 10
-        learning_rate = 0.2
+        max_iter = 100
+        learning_rate = 0.1
         for i in range(max_iter):
-            x -= (learning_rate * self.calculate_gradient(x))
+            via = (learning_rate * self.calculate_gradient(x))
+            x -= via
             for j in range(self.DIMENSION):
                 if x[j] < self.LBOUNDS[j] or x[j] > self.UBOUNDS[j]:
-                    x += (learning_rate * self.calculate_gradient(x))
+                    #print("pre", x)
+                    x += via
+                    #print("after", x)
                     break
             else:
                 continue
@@ -274,7 +277,7 @@ class OptIA:
             q, mod = divmod(self.generation, 100)
             if self.generation < 20:
                 self.gp.fit(self.original_coordinates, self.original_vals)
-            elif self.original_coordinates.__len__() > 500:
+            elif self.original_coordinates.__len__() > 2000:
                 pass
             elif mod == 0:
                 self.gp.fit(self.original_coordinates, self.original_vals)
@@ -379,7 +382,7 @@ class OptIA:
 
     def opt_ia(self, budget):  # TODO Chunk system
         logging.basicConfig()
-        logging.getLogger("optIA").setLevel(level=logging.DEBUG)
+        logging.getLogger("optIA").setLevel(level=logging.CRITICAL)
         # TODO Confirm warnings
         import warnings
         warnings.filterwarnings('ignore')
