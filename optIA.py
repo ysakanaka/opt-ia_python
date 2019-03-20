@@ -161,13 +161,23 @@ class OptIA:
 
             # f(x+h)
             x[i] += h
-            f_x_plus_h = self.fun(x)
+            vals_pred, deviation = self.gp.predict([x], return_std=True)
+            if (1+self.generation/5000) > deviation[0]:
+                f_x_plus_h = vals_pred[0]
+            else:
+                f_x_plus_h = self.fun(x)
+                self.evalcount += 1
 
-            X = store_x[:]
+            x = store_x[:]
 
             # f(x-h)
             x[i] -= h
-            f_x_minus_h = self.fun(x)
+            vals_pred, deviation = self.gp.predict([x], return_std=True)
+            if (1 + self.generation / 5000) > deviation[0]:
+                f_x_minus_h = vals_pred[0]
+            else:
+                f_x_minus_h = self.fun(x)
+                self.evalcount += 1
             gradient[i] = (f_x_plus_h - f_x_minus_h)/(2*h)
 
         return gradient
@@ -369,7 +379,7 @@ class OptIA:
 
     def opt_ia(self, budget):  # TODO Chunk system
         logging.basicConfig()
-        logging.getLogger("optIA").setLevel(level=logging.CRITICAL)
+        logging.getLogger("optIA").setLevel(level=logging.DEBUG)
         # TODO Confirm warnings
         import warnings
         warnings.filterwarnings('ignore')
