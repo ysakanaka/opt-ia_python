@@ -21,7 +21,7 @@ class OptIA:
             self.original_coordinates += [list(new_coordinate)]
             self.original_vals = np.append(self.original_vals,
                                            new_val)
-        elif self.original_coordinates.__len__() > 2000:
+        elif self.original_coordinates.__len__() > 500:
             pass
 
         elif self.generation % 20 == 0 or self.generation < 10:
@@ -277,7 +277,7 @@ class OptIA:
             q, mod = divmod(self.generation, 100)
             if self.generation < 20:
                 self.gp.fit(self.original_coordinates, self.original_vals)
-            elif self.original_coordinates.__len__() > 2000:
+            elif self.original_coordinates.__len__() > 500:
                 pass
             elif mod == 0:
                 self.gp.fit(self.original_coordinates, self.original_vals)
