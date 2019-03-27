@@ -128,6 +128,7 @@ class OptIA:
         self.searched_space = [[0 for _i in range(5)] for _j in range(5)]
         self.all_best = None
         self.all_best_generation = 0
+        self.stocked_value = 0
 
         # TODO Confirm the parameters for sobol_seq
         if self.SOBOL_SEQ_GENERATION:
@@ -217,7 +218,7 @@ class OptIA:
         for original in self.clo_pop:
             mutated_coordinate = []
 
-            if random.random() < 0.5:
+            if random.random() < 0.6:
                 """
                 if random.random() < -2.0:
                     mutated_coordinate = np.array([original.get_coordinates()[d]
@@ -280,12 +281,17 @@ class OptIA:
 
         if self.SURROGATE_ASSIST:
             q, mod = divmod(self.generation, 100)
+            stock_value = self.original_coordinates.__len__()
             if self.generation < 20:
                 self.gp.fit(self.original_coordinates, self.original_vals)
-            elif self.original_coordinates.__len__() > 500:
+                self.stocked_value = stock_value
+            elif stock_value == self.stocked_value:
+                pass
+            elif stock_value > 500:
                 pass
             elif mod == 0:
                 self.gp.fit(self.original_coordinates, self.original_vals)
+                self.stocked_value = stock_value
             vals_pred, deviations = self.gp.predict(mutated_coordinates,
                                                     return_std=True)
         else:
