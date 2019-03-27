@@ -97,7 +97,8 @@ class OptIA:
             self.hyp_pop.append(cell.Cell(candidate.copy(),
                                           mutated_val.copy(), 0))
 
-    def __init__(self, fun, lbounds, ubounds, ra=False, ssa=False,
+    def __init__(self, fun, lbounds, ubounds, ra=False,
+                 ssa=False,
                  sua=False, sobol=True):
 
         self.MAX_GENERATION = 1000000000
@@ -398,7 +399,7 @@ class OptIA:
         import warnings
         warnings.filterwarnings('ignore')
         logger.debug('budget is %s', budget)
-        while budget > 0:
+        while budget > 0 and not self.fun.final_target_hit:
             self.evalcount = 0
             self.clone(2)
             if self.SEARCHSPACE_ASSIST:  # TODO Condition?
