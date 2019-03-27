@@ -162,29 +162,32 @@ class OptIA:
             # f(x+h)
             x[i] += h
             vals_pred, deviation = self.gp.predict([x], return_std=True)
-            if (1+self.generation/5000) > deviation[0]:
-                f_x_plus_h = vals_pred[0]
-            else:
+            if (3/(1+self.generation/5000) < deviation[0]) or\
+                    self.generation > 50000:
                 f_x_plus_h = self.fun(x)
                 self.evalcount += 1
+
+            else:
+                f_x_plus_h = vals_pred[0]
 
             x = store_x[:]
 
             # f(x-h)
             x[i] -= h
             vals_pred, deviation = self.gp.predict([x], return_std=True)
-            if (1 + self.generation / 5000) > deviation[0]:
-                f_x_minus_h = vals_pred[0]
-            else:
+            if (3/(1+self.generation/5000) < deviation[0]) or\
+                    self.generation > 50000:
                 f_x_minus_h = self.fun(x)
                 self.evalcount += 1
+            else:
+                f_x_minus_h = vals_pred[0]
             gradient[i] = (f_x_plus_h - f_x_minus_h)/(2*h)
 
         return gradient
 
     def gradient_descent(self, x):
-        max_iter = 100
-        learning_rate = 0.1
+        max_iter = 10
+        learning_rate = 0.2
         for i in range(max_iter):
             via = (learning_rate * self.calculate_gradient(x))
             x -= via
@@ -213,46 +216,48 @@ class OptIA:
 
         for original in self.clo_pop:
             mutated_coordinate = []
-            """
-            if random.random() < -2.0:
-                mutated_coordinate = np.array([original.get_coordinates()[d]
-                                               + (self.UBOUNDS[d]
-                                                  - self.LBOUNDS[d])/10.0 *
-                                               random.randint(0, 2) *
-                                               random.gauss(0, 1) for d in
-                                               range(self.DIMENSION)])
 
-            for d in range(self.DIMENSION):
-                val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
-                                                       self.LBOUNDS[d])/85.0 \
-                        * random.randint(2, 3) * random.gauss(0, 1)
-                mutated_coordinate = np.append(mutated_coordinate, val)
-            """
+            if random.random() < 0.5:
+                """
+                if random.random() < -2.0:
+                    mutated_coordinate = np.array([original.get_coordinates()[d]
+                                                   + (self.UBOUNDS[d]
+                                                      - self.LBOUNDS[d])/10.0 *
+                                                   random.randint(0, 2) *
+                                                   random.gauss(0, 1) for d in
+                                                   range(self.DIMENSION)])
+    
+                for d in range(self.DIMENSION):
+                    val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
+                                                           self.LBOUNDS[d])/85.0 \
+                            * random.randint(2, 3) * random.gauss(0, 1)
+                    mutated_coordinate = np.append(mutated_coordinate, val)
+                """
 
-            while False:
-                mutated_coordinate = list(deap.tools.mutGaussian(
-                    original.get_coordinates().copy(), 0.5, 0.2, 0.5))[0]
-                if(all(0 < x for x in (np.array(mutated_coordinate) -
-                                       self.LBOUNDS))) \
-                        and (all(0 < y for y in
-                                 (self.UBOUNDS -
-                                  np.array(mutated_coordinate)))):
-                    break
-            while False:
-                mutated_coordinate = list(deap.tools.mutPolynomialBounded(
-                    original.get_coordinates().copy(), eta=0.00000001,
-                    low=self.LBOUNDS.tolist(), up=self.UBOUNDS.tolist(),
-                    indpb=0.5))[0]
-                if(all(0 < x for x in
-                       (np.array(mutated_coordinate) - self.LBOUNDS))) \
-                        and (all(0 < y for y
-                                 in (self.UBOUNDS -
-                                     np.array(mutated_coordinate)))):
-                    break
-
-            if self.GRADIENT_DESCENT:
-                mutated_coordinate = \
-                    self.gradient_descent(original.get_coordinates())
+                while False:
+                    mutated_coordinate = list(deap.tools.mutGaussian(
+                        original.get_coordinates().copy(), 0.5, 0.2, 0.5))[0]
+                    if(all(0 < x for x in (np.array(mutated_coordinate) -
+                                           self.LBOUNDS))) \
+                            and (all(0 < y for y in
+                                     (self.UBOUNDS -
+                                      np.array(mutated_coordinate)))):
+                        break
+                while True:
+                    mutated_coordinate = list(deap.tools.mutPolynomialBounded(
+                        original.get_coordinates().copy(), eta=0.00000001,
+                        low=self.LBOUNDS.tolist(), up=self.UBOUNDS.tolist(),
+                        indpb=0.5))[0]
+                    if(all(0 < x for x in
+                           (np.array(mutated_coordinate) - self.LBOUNDS))) \
+                            and (all(0 < y for y
+                                     in (self.UBOUNDS -
+                                         np.array(mutated_coordinate)))):
+                        break
+            else:
+                if self.GRADIENT_DESCENT:
+                    mutated_coordinate = \
+                        self.gradient_descent(original.get_coordinates())
 
             mutated_coordinates += [list(mutated_coordinate.copy())]
 
@@ -382,7 +387,7 @@ class OptIA:
 
     def opt_ia(self, budget):  # TODO Chunk system
         logging.basicConfig()
-        logging.getLogger("optIA").setLevel(level=logging.CRITICAL)
+        logging.getLogger("optIA").setLevel(level=logging.DEBUG)
         # TODO Confirm warnings
         import warnings
         warnings.filterwarnings('ignore')
