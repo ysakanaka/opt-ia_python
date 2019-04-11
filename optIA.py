@@ -6,9 +6,11 @@ import sobol_seq
 import numpy as np
 import copy
 import cell
+import plot
 
 from scipy.stats import norm
 from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import ExpSineSquared
 import deap.tools
 
 logger = logging.getLogger("optIA")
@@ -70,8 +72,10 @@ class OptIA:
             if self.SURROGATE_ASSIST:
                 q, mod = divmod(self.generation, 1000)
                 if self.generation < 20:
+                    print("Correct update of the GP")
                     self.gp.fit(self.original_coordinates, self.original_vals)
                 elif mod == 0:
+                    print("Correct gp update")
                     self.gp.fit(self.original_coordinates, self.original_vals)
                 vals_pred, deviations = self.gp.predict([candidate],
                                                         return_std=True)
@@ -102,7 +106,7 @@ class OptIA:
                  sua=False, sobol=True):
 
         self.MAX_GENERATION = 1000000000
-        self.MAX_POP = 20
+        self.MAX_POP = 40
         self.MAX_AGE = 10
         self.evalcount = 0
         self.generation = 0
@@ -130,6 +134,8 @@ class OptIA:
         self.all_best = None
         self.all_best_generation = 0
         self.stocked_value = 0
+        self.predicted_coordinates = []
+        self.predicted_vals = []
 
         # TODO Confirm the parameters for sobol_seq
         if self.SOBOL_SEQ_GENERATION:
@@ -164,32 +170,29 @@ class OptIA:
             # f(x+h)
             x[i] += h
             vals_pred, deviation = self.gp.predict([x], return_std=True)
-            if (3/(1+self.generation/5000) < deviation[0]) or\
-                    self.generation > 50000:
+            if (1 + self.generation / 5000) > deviation[0]:
+                f_x_plus_h = vals_pred[0]
+            else:
                 f_x_plus_h = self.fun(x)
                 self.evalcount += 1
-
-            else:
-                f_x_plus_h = vals_pred[0]
 
             x = store_x[:]
 
             # f(x-h)
             x[i] -= h
             vals_pred, deviation = self.gp.predict([x], return_std=True)
-            if (3/(1+self.generation/5000) < deviation[0]) or\
-                    self.generation > 50000:
+            if (1 + self.generation / 5000) > deviation[0]:
+                f_x_minus_h = vals_pred[0]
+            else:
                 f_x_minus_h = self.fun(x)
                 self.evalcount += 1
-            else:
-                f_x_minus_h = vals_pred[0]
             gradient[i] = (f_x_plus_h - f_x_minus_h)/(2*h)
 
         return gradient
 
     def gradient_descent(self, x):
-        max_iter = 10
-        learning_rate = 0.2
+        max_iter = 100
+        learning_rate = 0.1
         for i in range(max_iter):
             via = (learning_rate * self.calculate_gradient(x))
             x -= via
@@ -284,17 +287,23 @@ class OptIA:
             q, mod = divmod(self.generation, 100)
             stock_value = self.original_coordinates.__len__()
             if self.generation < 20:
-                self.gp.fit(self.original_coordinates, self.original_vals)
+                print("Another call to fit gp",self.original_coordinates)
+                a = [np.array([i[0],i[1]]).T for i in
+                     self.original_coordinates]
+                self.gp.fit(a, np.array(self.original_vals).reshape(-1,1))
                 self.stocked_value = stock_value
             elif stock_value == self.stocked_value:
                 pass
             elif stock_value > 500:
                 pass
             elif mod == 0:
+                print("Another call to fit gp (mod 0)")
                 self.gp.fit(self.original_coordinates, self.original_vals)
                 self.stocked_value = stock_value
             vals_pred, deviations = self.gp.predict(mutated_coordinates,
                                                     return_std=True)
+            self.predicted_coordinates = mutated_coordinates
+            self.predicted_vals = vals_pred
         else:
             vals_pred = mutated_coordinates
             deviations = mutated_coordinates
@@ -395,11 +404,27 @@ class OptIA:
     def opt_ia(self, budget):  # TODO Chunk system
         logging.basicConfig()
         logging.getLogger("optIA").setLevel(level=logging.DEBUG)
+        xx, yy = np.meshgrid(np.arange(-5, 5, 0.5), np.arange(-5, 5, 0.5))
+        latticePoints = np.c_[xx.ravel(), yy.ravel()]
         # TODO Confirm warnings
         import warnings
         warnings.filterwarnings('ignore')
         logger.debug('budget is %s', budget)
+        myplot = plot.Plot()
         while budget > 0 and not self.fun.final_target_hit:
+            myplot.plot(self.original_coordinates, self.original_vals,
+                        "Detected points")
+            print(self.original_coordinates)
+            print(self.predicted_coordinates)
+            if self.predicted_coordinates.__len__() > 1 and \
+                    self.predicted_vals.__len__() > 1:
+                myplot.plot(self.predicted_coordinates, self.predicted_vals,
+                            "Predicted points")
+                predicted_points, _ = self.gp.predict(latticePoints,
+                                                        return_std=True)
+                myplot.plot(latticePoints, predicted_points,
+                            "Predicted points on lattice")
+
             self.evalcount = 0
             self.clone(2)
             if self.SEARCHSPACE_ASSIST:  # TODO Condition?
