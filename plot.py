@@ -9,22 +9,10 @@ import seaborn as sns
 class Plot:
 
     def plot(self, xy, z, s):
-        # Get the data (csv file is hosted on the web)
-        url = 'https://python-graph-gallery.com/wp-content/uploads/volcano.csv'
-        data = pd.read_csv(url)
-
-        # Transform it to a long format
-        df = data.unstack().reset_index()
-        df.columns = ["X", "Y", "Z"]
-
-
-        # And transform the old column name in something numeric
-        df['X'] = pd.Categorical(df['X'])
-        df['X'] = df['X'].cat.codes
         df = pd.DataFrame(xy, columns=['X', 'Y'])
         df['Z'] = z
-        print(type(df))
-        print(df)
+        #print(type(df))
+        #print(df)
         # Make the plot
         fig = plt.figure()
 
