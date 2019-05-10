@@ -17,6 +17,9 @@ logger = logging.getLogger("optIA")
 
 
 class OptIA:
+    MUT_GAUSSIAN = 0
+    MUT_POLYNOMIAL_BOUNDED = 1
+    GRADIENT_DESCENT = 2
 
     def update_searched_space(self, new_coordinate, new_val):
         if self.original_coordinates.__len__() < 1:
@@ -72,10 +75,10 @@ class OptIA:
             if self.SURROGATE_ASSIST:
                 q, mod = divmod(self.generation, 1000)
                 if self.generation < 20:
-                    print("Correct update of the GP")
+                    #print("Correct update of the GP")
                     self.gp.fit(self.original_coordinates, self.original_vals)
                 elif mod == 0:
-                    print("Correct gp update")
+                    #print("Correct gp update")
                     self.gp.fit(self.original_coordinates, self.original_vals)
                 vals_pred, deviations = self.gp.predict([candidate],
                                                         return_std=True)
@@ -102,8 +105,13 @@ class OptIA:
                                           mutated_val.copy(), 0))
 
     def my_fun(self, x):
+        y = self.fun(x)
         self.evalcount += 1
-        return self.fun(x)
+        if self.fun.final_target_hit and not self.target_hit_first:
+            self.all_best = cell.Cell(x, y, 0)
+            logger.debug("best sol in my fun %s", y)
+            self.target_hit_first = True
+        return y
 
     def __init__(self, fun, lbounds, ubounds, ra=False,
                  ssa=False,
@@ -120,6 +128,7 @@ class OptIA:
         self.hyp_pop = []
         self.gp = GaussianProcessRegressor()
         self.fun = fun
+        self.target_hit_first = False
         self.LBOUNDS = lbounds
         self.UBOUNDS = ubounds
         self.DIMENSION = len(lbounds)
@@ -127,7 +136,7 @@ class OptIA:
         self.SEARCHSPACE_ASSIST = ssa
         self.SURROGATE_ASSIST = sua
         self.SOBOL_SEQ_GENERATION = sobol
-        self.GRADIENT_DESCENT = False
+        self.MUTATION = OptIA.MUT_POLYNOMIAL_BOUNDED
         self.pop.clear()
         self.clo_pop.clear()
         self.hyp_pop.clear()
@@ -162,6 +171,8 @@ class OptIA:
             self.pop.append(cell.Cell(coordinate.copy(), val.copy(), 0))
             self.update_searched_space(coordinate.copy(), val.copy())
 
+        self.best = copy.deepcopy(self.pop[0])
+
     def calculate_gradient(self, x):
         h = 1e-4
         x = np.array(x)
@@ -175,11 +186,12 @@ class OptIA:
             if (1 + self.generation / 5000) > deviation[0]:
                 f_x_plus_h = vals_pred[0]
             else:
-                logger.debug('Are we done? at doing gradient descent %s',
-                            self.fun.final_target_hit)
+                #logger.debug('Are we done? at doing gradient descent %s',
+                            #self.fun.final_target_hit)
                 f_x_plus_h = self.my_fun(x)
-                logger.debug('Are we done? after one eval gradient descent %s',
-                            self.fun.final_target_hit)
+                #logger.debug('Are we done? after one eval gradient descent
+                # %s',
+                            #self.fun.final_target_hit)
                 if(self.fun.final_target_hit):
                     logger.debug('Best value %s found at %s',self.fun(x),x)
 
@@ -200,17 +212,16 @@ class OptIA:
         max_iter = 100
         learning_rate = 0.1
         for i in range(max_iter):
-            logger.debug('Are we done? at gradient descent loop start %s',
-                        self.fun.final_target_hit)
+            #logger.debug('Are we done? at gradient descent loop start %s',
+                        #self.fun.final_target_hit)
             via = (learning_rate * self.calculate_gradient(x))
-            logger.debug('Are we done? at after calculate gradient descent %s',
-                        self.fun.final_target_hit)
+            #logger.debug('Are we done? at after calculate gradient descent
+            # %s',
+                       # self.fun.final_target_hit)
             x -= via
             for j in range(self.DIMENSION):
                 if x[j] < self.LBOUNDS[j] or x[j] > self.UBOUNDS[j]:
-                    #print("pre", x)
                     x += via
-                    #print("after", x)
                     break
             else:
                 continue
@@ -238,48 +249,35 @@ class OptIA:
             mutated_coordinate = []
 
             if random.random() < 0.6:
-                """
-                if random.random() < -2.0:
-                    mutated_coordinate = np.array([original.get_coordinates()[d]
-                                                   + (self.UBOUNDS[d]
-                                                      - self.LBOUNDS[d])/10.0 *
-                                                   random.randint(0, 2) *
-                                                   random.gauss(0, 1) for d in
-                                                   range(self.DIMENSION)])
-    
-                for d in range(self.DIMENSION):
-                    val = original.get_coordinates()[d] + (self.UBOUNDS[d] -
-                                                           self.LBOUNDS[d])/85.0 \
-                            * random.randint(2, 3) * random.gauss(0, 1)
-                    mutated_coordinate = np.append(mutated_coordinate, val)
-                """
+                if self.MUTATION == OptIA.MUT_GAUSSIAN:
+                    while True:
+                        mutated_coordinate = list(deap.tools.mutGaussian(
+                            original.get_coordinates().copy(), 0.5, 0.2, 0.5))[0]
+                        if(all(0 < x for x in (np.array(mutated_coordinate) -
+                                               self.LBOUNDS))) \
+                                and (all(0 < y for y in
+                                         (self.UBOUNDS -
+                                          np.array(mutated_coordinate)))):
+                            break
+                elif self.MUTATION == OptIA.MUT_POLYNOMIAL_BOUNDED:
+                    while True:
+                        mutated_coordinate = list(deap.tools.mutPolynomialBounded(
+                            original.get_coordinates().copy(), eta=0.00000001,
+                            low=self.LBOUNDS.tolist(), up=self.UBOUNDS.tolist(),
+                            indpb=0.5))[0]
+                        if(all(0 < x for x in
+                               (np.array(mutated_coordinate) - self.LBOUNDS))) \
+                                and (all(0 < y for y
+                                         in (self.UBOUNDS -
+                                             np.array(mutated_coordinate)))):
+                            break
 
-                while False:
-                    mutated_coordinate = list(deap.tools.mutGaussian(
-                        original.get_coordinates().copy(), 0.5, 0.2, 0.5))[0]
-                    if(all(0 < x for x in (np.array(mutated_coordinate) -
-                                           self.LBOUNDS))) \
-                            and (all(0 < y for y in
-                                     (self.UBOUNDS -
-                                      np.array(mutated_coordinate)))):
-                        break
-                while True:
-                    mutated_coordinate = list(deap.tools.mutPolynomialBounded(
-                        original.get_coordinates().copy(), eta=0.00000001,
-                        low=self.LBOUNDS.tolist(), up=self.UBOUNDS.tolist(),
-                        indpb=0.5))[0]
-                    if(all(0 < x for x in
-                           (np.array(mutated_coordinate) - self.LBOUNDS))) \
-                            and (all(0 < y for y
-                                     in (self.UBOUNDS -
-                                         np.array(mutated_coordinate)))):
-                        break
             else:
                 if self.GRADIENT_DESCENT:
                     mutated_coordinate = \
                         self.gradient_descent(original.get_coordinates())
-                    logger.debug('Are we done? at gradient descent %s',
-                                 self.fun.final_target_hit)
+                    #logger.debug('Are we done? at gradient descent %s',
+                                 #self.fun.final_target_hit)
 
             mutated_coordinates += [list(mutated_coordinate.copy())]
 
@@ -306,7 +304,7 @@ class OptIA:
             if self.generation < 20:
                 logger.debug('Are we done? at before fit gp call %s',
                              self.fun.final_target_hit)
-                print("Another call to fit gp",self.original_coordinates)
+                #print("Another call to fit gp",self.original_coordinates)
                 a = [np.array([i[0],i[1]]).T for i in
                      self.original_coordinates]
                 self.gp.fit(a, np.array(self.original_vals).reshape(-1,1))
@@ -318,7 +316,7 @@ class OptIA:
             elif stock_value > 500:
                 pass
             elif mod == 0:
-                print("Another call to fit gp (mod 0)")
+                #print("Another call to fit gp (mod 0)")
                 logger.debug('Are we done? at mod 0 fit gp %s',
                              self.fun.final_target_hit)
                 self.gp.fit(self.original_coordinates, self.original_vals)
@@ -332,7 +330,7 @@ class OptIA:
         else:
             vals_pred = mutated_coordinates
             deviations = mutated_coordinates
-
+        logger.debug("best sol at the middle %s", self.best.get_val())
         logger.debug('Are we done? at middle of nowhere %s',
                      self.fun.final_target_hit)
 
@@ -465,19 +463,19 @@ class OptIA:
         myplot = plot.Plot()
         #res = self.fun(np.array([5.0,5.0]))
         #print("Do we have the best?", res, self.fun.final_target_hit)
-        while budget > 0 :#and not self.fun.final_target_hit:
+        while budget > 0 and not self.fun.final_target_hit:
             logger.debug('Generation at loop start is %s', self.generation)
-            print('some function checks', self.fun.final_target_hit,
-                  self.fun.evaluations,self.fun.best_observed_fvalue1)
+            #print('some function checks', self.fun.final_target_hit,
+                  #self.fun.evaluations,self.fun.best_observed_fvalue1)
             logger.debug('Generation at loop start is %s', self.generation)
-            if self.generation % 100 == 0:
+            if self.generation % 100 == 0 and False:
                 myplot.plot(\
                     self.original_coordinates,
                                   self.original_vals,
                         "Detected points")
-            print(self.original_coordinates)
-            print("predicted coordinates", self.predicted_coordinates)
-            if self.generation % 100 == 0 and \
+            #print(self.original_coordinates)
+            #print("predicted coordinates", self.predicted_coordinates)
+            if False and self.generation % 100 == 0 and \
                     self.predicted_coordinates.__len__() > 1 and \
                     self.predicted_vals.__len__() > 1:
                 myplot.plot(self.predicted_coordinates, self.predicted_vals,
@@ -497,15 +495,17 @@ class OptIA:
                     self.hyper_mutate()
             else:
                 self.hyper_mutate()
+            logger.debug("best sol after hypermut %s", self.best.get_val())
             self.hybrid_age()
+            logger.debug("best sol after hybridage %s", self.best.get_val())
             self.select()
-            self.best = self.pop[0]
+            logger.debug("best sol after select %s", self.best.get_val())
             for c in self.pop:
                 if np.amin(c.get_val()) < np.amin(self.best.get_val()):
                     self.best = c
             if self.RESET_AGE:
                 self.best.reset_age()
-
+            logger.debug("best sol after all %s", self.best.get_val())
             chunk = self.evalcount
             budget -= chunk
 
@@ -523,14 +523,14 @@ class OptIA:
             logger.debug(self.best.get_coordinates())
 
             if self.generation == 1:
-                self.all_best = self.best
+                self.all_best = copy.deepcopy(self.best)
             else:
                 if np.amin(self.best.get_val()) >= \
                         np.amin(self.all_best.get_val()):
                     self.all_best_generation += 1
                 else:
                     self.all_best_generation = 0
-                    self.all_best = self.best
+                    self.all_best = copy.deepcopy(self.best)
 
                 logger.debug(np.amin(self.best.get_val()))
                 logger.debug(np.amin(self.all_best.get_val()))
@@ -544,4 +544,4 @@ class OptIA:
 
 
 
-        return self.best.get_coordinates()
+        return self.all_best.get_coordinates()
