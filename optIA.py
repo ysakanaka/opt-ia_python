@@ -92,13 +92,11 @@ class OptIA:
             if self.fun.number_of_constraints > 0:
                 c = self.fun.constraints(candidate)
                 if c <= 0:
-                    self.evalcount += 1
-                    mutated_val = self.fun(candidate)
+                    mutated_val = self.my_fun(candidate)
                     self.update_searched_space(candidate.copy(),
                                                mutated_val.copy())
             else:
-                self.evalcount += 1
-                mutated_val = self.fun(candidate)
+                mutated_val = self.my_fun(candidate)
                 self.update_searched_space(candidate.copy(),
                                            mutated_val.copy())
             self.hyp_pop.append(cell.Cell(candidate.copy(),
@@ -186,14 +184,7 @@ class OptIA:
             if (1 + self.generation / 5000) > deviation[0]:
                 f_x_plus_h = vals_pred[0]
             else:
-                #logger.debug('Are we done? at doing gradient descent %s',
-                            #self.fun.final_target_hit)
                 f_x_plus_h = self.my_fun(x)
-                #logger.debug('Are we done? after one eval gradient descent
-                # %s',
-                            #self.fun.final_target_hit)
-                if(self.fun.final_target_hit):
-                    logger.debug('Best value %s found at %s',self.fun(x),x)
 
             x = store_x[:]
 
@@ -212,12 +203,7 @@ class OptIA:
         max_iter = 100
         learning_rate = 0.1
         for i in range(max_iter):
-            #logger.debug('Are we done? at gradient descent loop start %s',
-                        #self.fun.final_target_hit)
             via = (learning_rate * self.calculate_gradient(x))
-            #logger.debug('Are we done? at after calculate gradient descent
-            # %s',
-                       # self.fun.final_target_hit)
             x -= via
             for j in range(self.DIMENSION):
                 if x[j] < self.LBOUNDS[j] or x[j] > self.UBOUNDS[j]:
@@ -237,19 +223,13 @@ class OptIA:
                 self.clo_pop.append(e)
 
     def hyper_mutate(self):
-        #logger.debug('Are we done? at hypermutate 1 %s',
-                     #self.fun.final_target_hit)
         self.hyp_pop.clear()
         mutated_coordinates = []
-        #logger.debug('Are we done? at hypermutate 2 %s',
-                     #self.fun.final_target_hit)
         etalist = [0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001,
                    0.0000001, 0.00000001, 0.000000001,
                    0.00000000001]
         etalistcount = 0
         for original in self.clo_pop:
-            #logger.debug('Are we done? at start of loop %s',
-                         #self.fun.final_target_hit)
             mutated_coordinate = []
 
             if random.random() < 0.5:
@@ -283,8 +263,6 @@ class OptIA:
                 if self.GRADIENT_DESCENT:
                     mutated_coordinate = \
                         self.gradient_descent(original.get_coordinates())
-                    #logger.debug('Are we done? at gradient descent %s',
-                                 #self.fun.final_target_hit)
 
             mutated_coordinates += [list(mutated_coordinate.copy())]
 
@@ -339,13 +317,11 @@ class OptIA:
                     if self.fun.number_of_constraints > 0:
                         c = self.fun.constraints(mutated_coordinate)
                         if c <= 0:
-                            self.evalcount += 1
-                            mutated_val = self.fun(mutated_coordinate)
+                            mutated_val = self.my_fun(mutated_coordinate)
                             self.update_searched_space(mutated_coordinate,
                                                        mutated_val)
                     else:
-                        self.evalcount += 1
-                        mutated_val = self.fun(mutated_coordinate)
+                        mutated_val = self.my_fun(mutated_coordinate)
                         self.update_searched_space(mutated_coordinate,
                                                    mutated_val)
                     if np.amin(mutated_val) < np.amin(original.get_val()):
@@ -357,8 +333,6 @@ class OptIA:
                             cell.Cell(mutated_coordinate.copy(),
                                       mutated_val.copy(), original.get_age()))
                 else:
-                    #logger.debug("Predicted value is %s , real value is %s",
-                                 #val_pred, self.fun(mutated_coordinate))
                     if np.amin(val_pred) < np.amin(original.get_val()):
                         self.hyp_pop.append(
                             cell.Cell(mutated_coordinate.copy(),
@@ -371,13 +345,11 @@ class OptIA:
                 if self.fun.number_of_constraints > 0:
                     c = self.fun.constraints(mutated_coordinate)
                     if c <= 0:
-                        self.evalcount += 1
-                        mutated_val = self.fun(mutated_coordinate)
+                        mutated_val = self.my_fun(mutated_coordinate)
                         self.update_searched_space(mutated_coordinate,
                                                    mutated_val)
                 else:
-                    self.evalcount += 1
-                    mutated_val = self.fun(mutated_coordinate)
+                    mutated_val = self.my_fun(mutated_coordinate)
                     self.update_searched_space(mutated_coordinate, mutated_val)
                 if np.amin(mutated_val) < np.amin(original.get_val()):
                     self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
@@ -418,17 +390,9 @@ class OptIA:
             if self.fun.number_of_constraints > 0:
                 c = self.fun.constraints(coordinates)
                 if c <= 0:
-                    logger.debug('Are we done? at 5 %s',
-                                 self.fun.final_target_hit)
-                    val = self.fun(coordinates)
-                    logger.debug('Are we done? at 5.5 %s',
-                                self.fun.final_target_hit)
+                    val = self.my_fun(coordinates)
             else:
-                logger.debug('Are we done? at 6 %s',
-                             self.fun.final_target_hit)
-                val = self.fun(coordinates[0])
-                logger.debug('Are we done? at 6.5 %s',
-                             self.fun.final_target_hit)
+                val = self.my_fun(coordinates[0])
             self.pop.append(cell.Cell(np.array(coordinates[0]), val, 0))
             self.evalcount += 1
 
@@ -442,20 +406,14 @@ class OptIA:
         warnings.filterwarnings('ignore')
         logger.debug('budget is %s', budget)
         myplot = plot.Plot()
-        #res = self.fun(np.array([5.0,5.0]))
-        #print("Do we have the best?", res, self.fun.final_target_hit)
         while budget > 0 and not self.fun.final_target_hit:
             logger.debug('Generation at loop start is %s', self.generation)
-            #print('some function checks', self.fun.final_target_hit,
-                  #self.fun.evaluations,self.fun.best_observed_fvalue1)
             logger.debug('Generation at loop start is %s', self.generation)
             if self.generation % 100 == 0 and False:
                 myplot.plot(\
                     self.original_coordinates,
                                   self.original_vals,
                         "Detected points")
-            #print(self.original_coordinates)
-            #print("predicted coordinates", self.predicted_coordinates)
             if False and self.generation % 100 == 0 and \
                     self.predicted_coordinates.__len__() > 1 and \
                     self.predicted_vals.__len__() > 1:
@@ -522,7 +480,6 @@ class OptIA:
                 logger.debug('generation is %s', self.generation)
                 logger.debug(self.all_best_generation)
             logger.debug('Generation at end of loop is %s', self.generation)
-            #logger.debug("solution", self.fun.final_target_fvalue1())
 
 
 
