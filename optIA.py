@@ -21,7 +21,7 @@ class OptIA:
     MUT_POLYNOMIAL_BOUNDED = 1
     GRADIENT_DESCENT = 2
 
-    def update_searched_space(self, new_coordinate, new_val):
+    def store_explored_points(self, new_coordinate, new_val):
         if self.original_coordinates.__len__() < 1:
             self.original_coordinates += [list(new_coordinate)]
             self.original_vals = np.append(self.original_vals,
@@ -84,7 +84,7 @@ class OptIA:
                                                         return_std=True)
                 if deviations[0] < 3 and np.amin(self.best.get_val()) < \
                         np.amin(vals_pred[0]):
-                    self.update_searched_space(candidate, vals_pred[0].copy())
+                    self.store_explored_points(candidate, vals_pred[0].copy())
                     self.hyp_pop.append(cell.Cell(candidate.copy(),
                                                   vals_pred[0].copy(), 0))
                     continue
@@ -93,11 +93,11 @@ class OptIA:
                 c = self.fun.constraints(candidate)
                 if c <= 0:
                     mutated_val = self.my_fun(candidate)
-                    self.update_searched_space(candidate.copy(),
+                    self.store_explored_points(candidate.copy(),
                                                mutated_val.copy())
             else:
                 mutated_val = self.my_fun(candidate)
-                self.update_searched_space(candidate.copy(),
+                self.store_explored_points(candidate.copy(),
                                            mutated_val.copy())
             self.hyp_pop.append(cell.Cell(candidate.copy(),
                                           mutated_val.copy(), 0))
@@ -167,7 +167,7 @@ class OptIA:
             else:
                 val = self.my_fun(coordinate)
             self.pop.append(cell.Cell(coordinate.copy(), val.copy(), 0))
-            self.update_searched_space(coordinate.copy(), val.copy())
+            self.store_explored_points(coordinate.copy(), val.copy())
 
         self.best = copy.deepcopy(self.pop[0])
 
@@ -318,11 +318,11 @@ class OptIA:
                         c = self.fun.constraints(mutated_coordinate)
                         if c <= 0:
                             mutated_val = self.my_fun(mutated_coordinate)
-                            self.update_searched_space(mutated_coordinate,
+                            self.store_explored_points(mutated_coordinate,
                                                        mutated_val)
                     else:
                         mutated_val = self.my_fun(mutated_coordinate)
-                        self.update_searched_space(mutated_coordinate,
+                        self.store_explored_points(mutated_coordinate,
                                                    mutated_val)
                     if np.amin(mutated_val) < np.amin(original.get_val()):
                         self.hyp_pop.append(
@@ -346,11 +346,11 @@ class OptIA:
                     c = self.fun.constraints(mutated_coordinate)
                     if c <= 0:
                         mutated_val = self.my_fun(mutated_coordinate)
-                        self.update_searched_space(mutated_coordinate,
+                        self.store_explored_points(mutated_coordinate,
                                                    mutated_val)
                 else:
                     mutated_val = self.my_fun(mutated_coordinate)
-                    self.update_searched_space(mutated_coordinate, mutated_val)
+                    self.store_explored_points(mutated_coordinate, mutated_val)
                 if np.amin(mutated_val) < np.amin(original.get_val()):
                     self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
                                                   mutated_val.copy(), 0))

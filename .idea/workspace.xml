@@ -26,8 +26,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/optIA.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="189">
-              <caret line="436" column="66" selection-start-line="436" selection-start-column="66" selection-end-line="436" selection-end-column="66" />
+            <state relative-caret-position="6464">
+              <caret line="282" column="47" selection-start-line="282" selection-start-column="47" selection-end-line="282" selection-end-column="47" />
               <folding>
                 <element signature="e#24#38#0" expanded="true" />
               </folding>
@@ -111,12 +111,14 @@
       <find>coordinates</find>
       <find>self.original_coordinates</find>
       <find>logger.debug('budget</find>
-      <find>self.fun</find>
       <find>gradient_d</find>
       <find>Are we</find>
       <find>predicted</find>
       <find>SURR</find>
       <find>print</find>
+      <find>self.fun</find>
+      <find>self.fun(</find>
+      <find>original_coordinates</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -225,7 +227,7 @@
       <workItem from="1557184267691" duration="8230000" />
       <workItem from="1557382526406" duration="67000" />
       <workItem from="1557382613593" duration="146000" />
-      <workItem from="1557382858161" duration="22714000" />
+      <workItem from="1557382858161" duration="25066000" />
     </task>
     <task id="LOCAL-00001" summary="This is first commit.">
       <created>1542869876358</created>
@@ -388,11 +390,25 @@
       <option name="project" value="LOCAL" />
       <updated>1557478572249</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="Change the eta which is an argument of mutPolynomialBounded from fixed to dynamic.">
+      <created>1558075102647</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1558075102648</updated>
+    </task>
+    <task id="LOCAL-00025" summary="Replace all self.fun to self.my_fun.">
+      <created>1558076122481</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1558076122481</updated>
+    </task>
+    <option name="localTasksCounter" value="26" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="179499000" />
+    <option name="totallyTimeSpent" value="181851000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -404,13 +420,13 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="221" y="23" width="1530" height="986" extended-state="0" />
+    <frame x="113" y="25" width="1530" height="986" extended-state="0" />
     <layout>
       <window_info id="Structure" order="0" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="1" side_tool="true" />
-      <window_info active="true" content_ui="combo" id="Project" order="2" visible="true" weight="0.18346775" />
+      <window_info content_ui="combo" id="Project" order="2" visible="true" weight="0.18346775" />
       <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Find" order="1" visible="true" weight="0.038724374" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.32232347" />
       <window_info anchor="bottom" id="Run" order="2" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
@@ -420,7 +436,7 @@
       <window_info anchor="bottom" id="Version Control" order="8" weight="0.32915717" />
       <window_info anchor="bottom" id="Database Changes" order="9" />
       <window_info anchor="bottom" id="Event Log" order="10" sideWeight="0.5010453" side_tool="true" weight="0.26880395" />
-      <window_info anchor="bottom" id="Terminal" order="11" sideWeight="0.4989547" weight="0.21753986" />
+      <window_info active="true" anchor="bottom" id="Terminal" order="11" sideWeight="0.4989547" visible="true" weight="0.21753986" />
       <window_info anchor="bottom" id="Python Console" order="12" />
       <window_info anchor="bottom" id="Messages" order="13" weight="0.32880434" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
@@ -482,7 +498,9 @@
     <MESSAGE value="Bug fix and do gradient descent and polynomial mutation randomly." />
     <MESSAGE value="Removed unnecessary part." />
     <MESSAGE value="Made new function my_fun.&#10;&#10;Best solutions can be founded in the phase of gradient descent. However, the values generated in gradient descent were not used for make new individuals. Therefore, even we found the best solution in gradient descent, it is never returned to coco correctly. To fix that, if we found the best solution in the phase of gradient descent, we would force to substitute it for self.all_best. &#10;Also, improved some bad coding such as mutation mode was switched by boolean." />
-    <option name="LAST_COMMIT_MESSAGE" value="Made new function my_fun.&#10;&#10;Best solutions can be founded in the phase of gradient descent. However, the values generated in gradient descent were not used for make new individuals. Therefore, even we found the best solution in gradient descent, it is never returned to coco correctly. To fix that, if we found the best solution in the phase of gradient descent, we would force to substitute it for self.all_best. &#10;Also, improved some bad coding such as mutation mode was switched by boolean." />
+    <MESSAGE value="Change the eta which is an argument of mutPolynomialBounded from fixed to dynamic." />
+    <MESSAGE value="Replace all self.fun to self.my_fun." />
+    <option name="LAST_COMMIT_MESSAGE" value="Replace all self.fun to self.my_fun." />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$USER_HOME$/.pyenv/versions/anaconda3-5.1.0/lib/python3.6/site-packages/sklearn/gaussian_process/test.py" />
@@ -558,8 +576,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/optIA.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="189">
-          <caret line="436" column="66" selection-start-line="436" selection-start-column="66" selection-end-line="436" selection-end-column="66" />
+        <state relative-caret-position="6464">
+          <caret line="282" column="47" selection-start-line="282" selection-start-column="47" selection-end-line="282" selection-end-column="47" />
           <folding>
             <element signature="e#24#38#0" expanded="true" />
           </folding>
