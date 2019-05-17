@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="e407f3ec-c7a8-4cd7-82b1-a0335155de78" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/optIA.py" beforeDir="false" afterPath="$PROJECT_DIR$/optIA.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -26,8 +25,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/optIA.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="6464">
-              <caret line="282" column="47" selection-start-line="282" selection-start-column="47" selection-end-line="282" selection-end-column="47" />
+            <state relative-caret-position="200">
+              <caret line="25" column="50" selection-start-line="25" selection-start-column="50" selection-end-line="25" selection-end-column="50" />
               <folding>
                 <element signature="e#24#38#0" expanded="true" />
               </folding>
@@ -143,8 +142,8 @@
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="113" />
-    <option name="y" value="25" />
+    <option name="x" value="70" />
+    <option name="y" value="26" />
     <option name="width" value="1530" />
     <option name="height" value="986" />
   </component>
@@ -227,7 +226,7 @@
       <workItem from="1557184267691" duration="8230000" />
       <workItem from="1557382526406" duration="67000" />
       <workItem from="1557382613593" duration="146000" />
-      <workItem from="1557382858161" duration="25066000" />
+      <workItem from="1557382858161" duration="26136000" />
     </task>
     <task id="LOCAL-00001" summary="This is first commit.">
       <created>1542869876358</created>
@@ -404,11 +403,18 @@
       <option name="project" value="LOCAL" />
       <updated>1558076122481</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="Changed the name of a function from update_searched_space to store_explored_points.">
+      <created>1558087519897</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1558087519897</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="181851000" />
+    <option name="totallyTimeSpent" value="182921000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -420,7 +426,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="113" y="25" width="1530" height="986" extended-state="0" />
+    <frame x="70" y="26" width="1530" height="986" extended-state="0" />
     <layout>
       <window_info id="Structure" order="0" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="1" side_tool="true" />
@@ -475,7 +481,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT" value="true" />
-    <MESSAGE value="This is first commit." />
     <MESSAGE value="Implement Opt-IA.py and Cell.py" />
     <MESSAGE value="Fix bug" />
     <MESSAGE value="Introduce sklearn into hypermutation (on the way)" />
@@ -500,7 +505,8 @@
     <MESSAGE value="Made new function my_fun.&#10;&#10;Best solutions can be founded in the phase of gradient descent. However, the values generated in gradient descent were not used for make new individuals. Therefore, even we found the best solution in gradient descent, it is never returned to coco correctly. To fix that, if we found the best solution in the phase of gradient descent, we would force to substitute it for self.all_best. &#10;Also, improved some bad coding such as mutation mode was switched by boolean." />
     <MESSAGE value="Change the eta which is an argument of mutPolynomialBounded from fixed to dynamic." />
     <MESSAGE value="Replace all self.fun to self.my_fun." />
-    <option name="LAST_COMMIT_MESSAGE" value="Replace all self.fun to self.my_fun." />
+    <MESSAGE value="Changed the name of a function from update_searched_space to store_explored_points." />
+    <option name="LAST_COMMIT_MESSAGE" value="Changed the name of a function from update_searched_space to store_explored_points." />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$USER_HOME$/.pyenv/versions/anaconda3-5.1.0/lib/python3.6/site-packages/sklearn/gaussian_process/test.py" />
@@ -576,8 +582,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/optIA.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="6464">
-          <caret line="282" column="47" selection-start-line="282" selection-start-column="47" selection-end-line="282" selection-end-column="47" />
+        <state relative-caret-position="200">
+          <caret line="25" column="50" selection-start-line="25" selection-start-column="50" selection-end-line="25" selection-end-column="50" />
           <folding>
             <element signature="e#24#38#0" expanded="true" />
           </folding>
