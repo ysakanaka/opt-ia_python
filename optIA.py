@@ -113,7 +113,7 @@ class OptIA:
 
     def __init__(self, fun, lbounds, ubounds, ra=False,
                  ssa=False,
-                 sua=False, sobol=True):
+                 sua=False, sobol=True, gd=False):
 
         self.MAX_GENERATION = 1000000000
         self.MAX_POP = 30
@@ -134,6 +134,7 @@ class OptIA:
         self.SEARCHSPACE_ASSIST = ssa
         self.SURROGATE_ASSIST = sua
         self.SOBOL_SEQ_GENERATION = sobol
+        self.GRADIENT_DESCENT = gd
         self.MUTATION = OptIA.MUT_POLYNOMIAL_BOUNDED
         self.pop.clear()
         self.clo_pop.clear()
@@ -232,7 +233,7 @@ class OptIA:
         for original in self.clo_pop:
             mutated_coordinate = []
 
-            if random.random() < 0.5:
+            if random.random() < 0.5 or not self.GRADIENT_DESCENT:
                 if self.MUTATION == OptIA.MUT_GAUSSIAN:
                     while True:
                         mutated_coordinate = list(deap.tools.mutGaussian(
