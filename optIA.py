@@ -82,7 +82,7 @@ class OptIA:
                     self.gp.fit(self.original_coordinates, self.original_vals)
                 vals_pred, deviations = self.gp.predict([candidate],
                                                         return_std=True)
-                if deviations[0] < 3 and np.amin(self.best.get_val()) < \
+                if deviations[0] < 3 and np.amin(self.best.val) < \
                         np.amin(vals_pred[0]):
                     self.store_explored_points(candidate, vals_pred[0].copy())
                     self.hyp_pop.append(cell.Cell(candidate.copy(),
@@ -237,7 +237,7 @@ class OptIA:
                 if self.MUTATION == OptIA.MUT_GAUSSIAN:
                     while True:
                         mutated_coordinate = list(deap.tools.mutGaussian(
-                            original.get_coordinates().copy(), 0.5, 0.2, 0.5))[0]
+                            original.coordinates.copy(), 0.5, 0.2, 0.5))[0]
                         if(all(0 < x for x in (np.array(mutated_coordinate) -
                                                self.LBOUNDS))) \
                                 and (all(0 < y for y in
@@ -248,7 +248,7 @@ class OptIA:
                     while True:
                         mutated_coordinate \
                             = list(deap.tools.mutPolynomialBounded(
-                                original.get_coordinates().copy(),
+                                original.coordinates.copy(),
                                 eta=random.random()/etalist[etalistcount],
                                 low=self.LBOUNDS.tolist(),
                                 up=self.UBOUNDS.tolist(), indpb=0.8))[0]
@@ -263,7 +263,7 @@ class OptIA:
             else:
                 if self.GRADIENT_DESCENT:
                     mutated_coordinate = \
-                        self.gradient_descent(original.get_coordinates())
+                        self.gradient_descent(original.coordinates)
 
             mutated_coordinates += [list(mutated_coordinate.copy())]
 
@@ -306,13 +306,13 @@ class OptIA:
         else:
             vals_pred = mutated_coordinates
             deviations = mutated_coordinates
-        logger.debug("best sol at the middle %s", self.best.get_val())
+        logger.debug("best sol at the middle %s", self.best.val)
 
         mutated_val = 0
         for mutated_coordinate, original, val_pred, deviation, in zip(
                 mutated_coordinates, self.clo_pop, vals_pred, deviations):
             if self.SURROGATE_ASSIST:
-                if ((np.amin(self.best.get_val()) > np.amin(val_pred)) or (
+                if ((np.amin(self.best.val) > np.amin(val_pred)) or (
                         3/(1+self.generation/5000) < deviation) or
                         self.generation > 50000):
                     if self.fun.number_of_constraints > 0:
@@ -325,23 +325,23 @@ class OptIA:
                         mutated_val = self.my_fun(mutated_coordinate)
                         self.store_explored_points(mutated_coordinate,
                                                    mutated_val)
-                    if np.amin(mutated_val) < np.amin(original.get_val()):
+                    if np.amin(mutated_val) < np.amin(original.val):
                         self.hyp_pop.append(
                             cell.Cell(mutated_coordinate.copy(),
                                       mutated_val.copy(), 0))
                     else:
                         self.hyp_pop.append(
                             cell.Cell(mutated_coordinate.copy(),
-                                      mutated_val.copy(), original.get_age()))
+                                      mutated_val.copy(), original.age))
                 else:
-                    if np.amin(val_pred) < np.amin(original.get_val()):
+                    if np.amin(val_pred) < np.amin(original.val):
                         self.hyp_pop.append(
                             cell.Cell(mutated_coordinate.copy(),
                                       val_pred.copy(), 0))
                     else:
                         self.hyp_pop.append(
                             cell.Cell(mutated_coordinate.copy(),
-                                      val_pred.copy(), original.get_age()))
+                                      val_pred.copy(), original.age))
             else:
                 if self.fun.number_of_constraints > 0:
                     c = self.fun.constraints(mutated_coordinate)
@@ -352,23 +352,23 @@ class OptIA:
                 else:
                     mutated_val = self.my_fun(mutated_coordinate)
                     self.store_explored_points(mutated_coordinate, mutated_val)
-                if np.amin(mutated_val) < np.amin(original.get_val()):
+                if np.amin(mutated_val) < np.amin(original.val):
                     self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
                                                   mutated_val.copy(), 0))
                 else:
                     self.hyp_pop.append(cell.Cell(mutated_coordinate.copy(),
                                                   mutated_val.copy(),
-                                                  original.get_age()))
+                                                  original.age))
 
     def hybrid_age(self):
         for c in self.pop:
             c.add_age()
-            if ((self.MAX_AGE < c.get_age()) and (random.random() < 1.0 -
+            if ((self.MAX_AGE < c.age) and (random.random() < 1.0 -
                                                   1.0/self.MAX_POP)):
                 self.pop.remove(c)
         for c in self.hyp_pop:
             c.add_age()
-            if ((self.MAX_AGE < c.get_age()) and (random.random() < 1.0 -
+            if ((self.MAX_AGE < c.age) and (random.random() < 1.0 -
                                                   1.0/self.MAX_POP)):
                 self.hyp_pop.remove(c)
 
@@ -380,7 +380,7 @@ class OptIA:
         while self.MAX_POP < len(self.pop):
             worst = self.pop[0]
             for c in self.pop:
-                if np.amin(worst.get_val()) < np.amin(c.get_val()):
+                if np.amin(worst.val) < np.amin(c.val):
                     worst = c
             self.pop.remove(worst)
 
@@ -435,19 +435,19 @@ class OptIA:
                     self.hyper_mutate()
             else:
                 self.hyper_mutate()
-            logger.debug("best sol after hypermut %s", self.best.get_val())
+            logger.debug("best sol after hypermut %s", self.best.val)
             self.hybrid_age()
-            logger.debug("best sol after hybridage %s", self.best.get_val())
+            logger.debug("best sol after hybridage %s", self.best.val)
             self.select()
-            logger.debug("best sol after select %s", self.best.get_val())
+            logger.debug("best sol after select %s", self.best.val)
             for c in self.pop:
-                logger.debug("each individuals %s", c.get_val())
-                if np.amin(c.get_val()) < np.amin(self.best.get_val()):
+                logger.debug("each individuals %s", c.val)
+                if np.amin(c.val) < np.amin(self.best.val):
                     self.best = c
                     logger.debug("inserted")
             if self.RESET_AGE:
                 self.best.reset_age()
-            logger.debug("best sol after all %s", self.best.get_val())
+            logger.debug("best sol after all %s", self.best.val)
             chunk = self.evalcount
             budget -= chunk
 
@@ -462,20 +462,20 @@ class OptIA:
 
             logger.debug('generation is %s',self.generation)
             logger.debug('budget is %s', budget)
-            logger.debug(self.best.get_coordinates())
+            logger.debug(self.best.coordinates)
 
             if self.generation == 1:
                 self.all_best = copy.deepcopy(self.best)
             else:
-                if np.amin(self.best.get_val()) >= \
-                        np.amin(self.all_best.get_val()):
+                if np.amin(self.best.val) >= \
+                        np.amin(self.all_best.val):
                     self.all_best_generation += 1
                 else:
                     self.all_best_generation = 0
                     self.all_best = copy.deepcopy(self.best)
 
-                logger.debug(np.amin(self.best.get_val()))
-                logger.debug(np.amin(self.all_best.get_val()))
+                logger.debug(np.amin(self.best.val))
+                logger.debug(np.amin(self.all_best.val))
                 logger.debug('all_best %s', self.all_best_generation)
                 logger.debug('budget is %s', budget)
                 logger.debug('generation is %s', self.generation)
@@ -485,4 +485,4 @@ class OptIA:
 
 
 
-        return self.all_best.get_coordinates()
+        return self.all_best.coordinates

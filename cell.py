@@ -1,38 +1,41 @@
 #!/usr/bin/env python3
 
-import numpy as np
-
 
 class Cell:
 
     def __init__(self, coord, v, a):
-        self.coordinates = coord
-        self.val = v
-        self.age = a
+        self.__coordinates = coord
+        self.__val = v
+        self.__age = a
 
-    def set_coordinates(self, c):
-        self.coordinates = c
+    @property
+    def coordinates(self):
+        return self.__coordinates
 
-    def set_val(self, v):
-        self.val = v
+    @coordinates.setter
+    def coordinates(self, c):
+        self.__coordinates = c
 
-    def set_age(self, a):
-        self.age = a
+    @property
+    def val(self):
+        return self.__val
 
-    def get_coordinates(self):
-        return self.coordinates
+    @val.setter
+    def val(self, v):
+        self.__val = v
 
-    def get_array_coordinates(self):
-        return [list(np.array(self.coordinates).copy())]
+    @property
+    def age(self):
+        return self.__age
 
-    def get_val(self):
-        return self.val
-
-    def get_age(self):
-        return self.age
+    @age.setter
+    def age(self, a):
+        if a < 0:
+            raise ValueError("Age should be over than 0.")
+        self.__age = a
 
     def add_age(self):
-        self.age += 1
+        self.__age += 1
 
     def reset_age(self):
-        self.age = 0
+        self.__age = 0
