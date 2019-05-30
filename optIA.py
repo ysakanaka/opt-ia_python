@@ -8,6 +8,7 @@ import copy
 import cell
 import plot
 
+from collections import OrderedDict
 from scipy.stats import norm
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import ExpSineSquared
@@ -21,22 +22,40 @@ class OptIA:
     MUT_POLYNOMIAL_BOUNDED = 1
     GRADIENT_DESCENT = 2
 
-    def store_explored_points(self, new_coordinate, new_val):
-        if self.original_coordinates.__len__() < 1:
-            self.original_coordinates += [list(new_coordinate)]
-            self.original_vals = np.append(self.original_vals,
-                                           new_val)
-        elif self.original_coordinates.__len__() > 500:
-            pass
+    def convert_dict_to_array(self, d, explored_coordinates, explored_vals,
+                              coordinates):
+        for key in d.keys():
+            if type(d[key]) != np.float64:
+                self.convert_dict_to_array(d[key], explored_coordinates,
+                                           explored_vals, np.append(coordinates, key))
+            else:
+                self.explored_coordinates = \
+                    np.append(self.explored_coordinates, [np.append(
+                        coordinates, key)], axis=0)
+                self.explored_vals = np.append(self.explored_vals, (d[key]))
 
-        elif self.generation % 20 == 0 or self.generation < 10:
-            self.original_coordinates = np.append(
-                self.original_coordinates, [list(
-                    new_coordinate)], axis=0)
-            self.original_vals = np.append(self.original_vals,
-                                           new_val)
+    def add_points_into_dict(self, d, new_coordinate, new_val):
+        if new_coordinate[0] in d:
+            if len(new_coordinate) == 1:
+                return
+            else:
+                self.add_points_into_dict(
+                    d[new_coordinate[0]], new_coordinate[1:], new_val)
         else:
-            pass
+            d[new_coordinate[0]] = OrderedDict()
+            if len(new_coordinate) == 1:
+                d[new_coordinate[0]] = new_val
+                return
+            else:
+                self.add_points_into_dict(d[new_coordinate[0]],
+                                          new_coordinate[1:], new_val)
+
+    def store_explored_points(self, new_coordinate, new_val):
+        new_coordinate = \
+            list(map(
+                lambda x: round(x, self.ROUNDIN_NUM_DIGITS), new_coordinate))
+        self.add_points_into_dict(
+            self.explored_points, new_coordinate, new_val)
 
         pos = [0, 0]
         for d in range(2):
@@ -76,10 +95,10 @@ class OptIA:
                 q, mod = divmod(self.generation, 1000)
                 if self.generation < 20:
                     #print("Correct update of the GP")
-                    self.gp.fit(self.original_coordinates, self.original_vals)
+                    self.gp.fit(self.explored_coordinates, self.explored_vals)
                 elif mod == 0:
                     #print("Correct gp update")
-                    self.gp.fit(self.original_coordinates, self.original_vals)
+                    self.gp.fit(self.explored_coordinates, self.explored_vals)
                 vals_pred, deviations = self.gp.predict([candidate],
                                                         return_std=True)
                 if deviations[0] < 3 and np.amin(self.best.val) < \
@@ -120,6 +139,7 @@ class OptIA:
         self.MAX_AGE = 10
         self.evalcount = 0
         self.generation = 0
+        self.ROUNDIN_NUM_DIGITS = 2
         self.GENOTYPE_DUP = True
         self.pop = []
         self.clo_pop = []
@@ -139,8 +159,9 @@ class OptIA:
         self.pop.clear()
         self.clo_pop.clear()
         self.hyp_pop.clear()
-        self.original_coordinates = []
-        self.original_vals = []
+        self.explored_coordinates = []
+        self.explored_vals = []
+        self.explored_points = OrderedDict()
         self.best = None
         self.searched_space = [[0 for _i in range(5)] for _j in range(5)]
         self.all_best = None
@@ -270,34 +291,38 @@ class OptIA:
             if self.generation == 0:
                 self.best = self.clo_pop[0]
 
-        self.original_coordinates = np.array(self.original_coordinates)
-        self.original_coordinates = np.atleast_2d(self.original_coordinates)
         mutated_coordinates = np.atleast_2d(np.array(mutated_coordinates))
-
-        original_coordinates_index = np.unique(self.original_coordinates,
-                                               axis=0, return_index=True)[1]
-        self.original_coordinates = [self.original_coordinates[
-                                         original_coordinates_index] for
-                                     original_coordinates_index in sorted(
-                original_coordinates_index)]
-        self.original_vals = [self.original_vals[original_coordinates_index]
-                              for original_coordinates_index in sorted(
-                                  original_coordinates_index)]
 
         if self.SURROGATE_ASSIST:
             q, mod = divmod(self.generation, 100)
-            stock_value = self.original_coordinates.__len__()
-            if self.generation < 20:
+            stock_value = self.explored_coordinates.__len__()
+            if self.generation < 50:
                 a = [np.array([i[0],i[1]]).T for i in
-                     self.original_coordinates]
-                self.gp.fit(a, np.array(self.original_vals).reshape(-1,1))
+                     self.explored_coordinates]
+                self.explored_coordinates = np.empty((0, self.DIMENSION),
+                                                     np.float64)
+                self.explored_vals = np.empty((0, self.DIMENSION),
+                                                     np.float64)
+                self.convert_dict_to_array(self.explored_points,
+                                           self.explored_coordinates,
+                                           self.explored_vals, np.array([]))
+                self.gp.fit(self.explored_coordinates,
+                            self.explored_vals.reshape(-1, 1))
                 self.stocked_value = stock_value
             elif stock_value == self.stocked_value:
                 pass
             elif stock_value > 500:
                 pass
             elif mod == 0:
-                self.gp.fit(self.original_coordinates, self.original_vals)
+                self.explored_coordinates = np.empty((0, self.DIMENSION),
+                                                     np.float64)
+                self.explored_vals = np.empty((0, self.DIMENSION),
+                                              np.float64)
+                self.convert_dict_to_array(self.explored_points,
+                                           self.explored_coordinates,
+                                           self.explored_vals, np.array([]))
+                self.gp.fit(self.explored_coordinates,
+                            self.explored_vals.reshape(-1, 1))
                 self.stocked_value = stock_value
             vals_pred, deviations = self.gp.predict(mutated_coordinates,
                                                     return_std=True)
@@ -313,8 +338,11 @@ class OptIA:
                 mutated_coordinates, self.clo_pop, vals_pred, deviations):
             if self.SURROGATE_ASSIST:
                 if ((np.amin(self.best.val) > np.amin(val_pred)) or (
-                        3/(1+self.generation/5000) < deviation) or
+                        0.0 != deviation) or
                         self.generation > 50000):
+                    #print(deviation)
+                    #logger.debug("predicted %s", mutated_val)
+                    #logger.debug("actual %s", self.fun(mutated_coordinate))
                     if self.fun.number_of_constraints > 0:
                         c = self.fun.constraints(mutated_coordinate)
                         if c <= 0:
@@ -412,10 +440,10 @@ class OptIA:
             logger.debug('Generation at loop start is %s', self.generation)
             if self.generation % 100 == 0 and False:
                 myplot.plot(\
-                    self.original_coordinates,
-                                  self.original_vals,
+                    self.explored_coordinates,
+                                  self.explored_vals,
                         "Detected points")
-            if False and self.generation % 100 == 0 and \
+            if False and self.generation % 10 == 0 and \
                     self.predicted_coordinates.__len__() > 1 and \
                     self.predicted_vals.__len__() > 1:
                 myplot.plot(self.predicted_coordinates, self.predicted_vals,
@@ -453,7 +481,7 @@ class OptIA:
 
             logger.debug(self.searched_space)
             logger.debug('stock values length %s',
-                         self.original_coordinates.__len__())
+                         self.explored_coordinates.__len__())
             logger.debug(self.pop.__len__())
             logger.debug(self.hyp_pop.__len__())
             logger.debug(self.clo_pop.__len__())
