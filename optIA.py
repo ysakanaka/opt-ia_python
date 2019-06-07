@@ -297,9 +297,9 @@ class OptIA:
         mutated_coordinates = np.atleast_2d(np.array(mutated_coordinates))
 
         if self.SURROGATE_ASSIST:
-            q, mod = divmod(self.generation, 100)
+            q, mod = divmod(self.generation, 1)
             stock_value = self.explored_coordinates.__len__()
-            if self.generation < 50:
+            if self.generation < 20:
                 self.explored_coordinates = np.empty((0, self.DIMENSION),
                                                      np.float64)
                 self.explored_vals = np.empty((0, self.DIMENSION), np.float64)
@@ -309,10 +309,6 @@ class OptIA:
                 self.gp.fit(self.explored_coordinates,
                             self.explored_vals.reshape(-1, 1))
                 self.stocked_value = stock_value
-            elif stock_value == self.stocked_value:
-                pass
-            elif stock_value > 500:
-                pass
             elif mod == 0:
                 self.explored_coordinates = np.empty((0, self.DIMENSION),
                                                      np.float64)

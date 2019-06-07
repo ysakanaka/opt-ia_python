@@ -26,8 +26,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/optIA.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="607">
-              <caret line="151" column="37" lean-forward="true" selection-start-line="151" selection-start-column="37" selection-end-line="151" selection-end-column="37" />
+            <state relative-caret-position="222">
+              <caret line="306" column="69" lean-forward="true" selection-start-line="306" selection-start-column="69" selection-end-line="306" selection-end-column="69" />
               <folding>
                 <element signature="e#24#38#0" expanded="true" />
               </folding>
@@ -107,14 +107,16 @@
       <find>predicted</find>
       <find>SURR</find>
       <find>print</find>
-      <find>self.fun</find>
       <find>self.fun(</find>
       <find>original_coordinates</find>
       <find>Gradient</find>
       <find>get</find>
       <find>set</find>
-      <find>gp.fit</find>
       <find>DEBug</find>
+      <find>explored</find>
+      <find>my_fun</find>
+      <find>self.fun</find>
+      <find>gp.fit</find>
     </findStrings>
     <replaceStrings>
       <replace>age</replace>
@@ -144,8 +146,8 @@
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="1" />
-    <option name="y" value="42" />
+    <option name="x" value="91" />
+    <option name="y" value="23" />
     <option name="width" value="1276" />
     <option name="height" value="1018" />
   </component>
@@ -229,7 +231,7 @@
       <workItem from="1557382526406" duration="67000" />
       <workItem from="1557382613593" duration="146000" />
       <workItem from="1557382858161" duration="47402000" />
-      <workItem from="1559187974246" duration="176000" />
+      <workItem from="1559187974246" duration="8727000" />
     </task>
     <task id="LOCAL-00001" summary="This is first commit.">
       <created>1542869876358</created>
@@ -427,11 +429,25 @@
       <option name="project" value="LOCAL" />
       <updated>1559113323407</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="Change the method how to store the individuals for training surrogate function.&#10;1. Change the data type storing individuals for training gaussian process from list to dictionary.&#10;2. Round down to the second decimal place.&#10;3. Store the individuals into multiple dictionary.">
+      <created>1559208468018</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1559208468018</updated>
+    </task>
+    <task id="LOCAL-00030" summary="Change the kernel to Matern from default.">
+      <created>1559894808401</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1559894808402</updated>
+    </task>
+    <option name="localTasksCounter" value="31" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="204363000" />
+    <option name="totallyTimeSpent" value="212914000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -443,7 +459,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="1" y="42" width="1276" height="1018" extended-state="0" />
+    <frame x="91" y="23" width="1276" height="1018" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Structure" order="0" side_tool="true" weight="0.25" />
@@ -499,8 +515,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT" value="true" />
-    <MESSAGE value="Introduce sklearn into hypermutation (on the way)" />
-    <MESSAGE value="Fix bug related in sklearn.(Some errors are pending.)" />
     <MESSAGE value="Fix bug&#10;&#10;Get multiple variables from multiple list by zip." />
     <MESSAGE value="Implement sklearn (bugs pending)" />
     <MESSAGE value="Bug fix" />
@@ -524,7 +538,9 @@
     <MESSAGE value="Changed the name of a function from update_searched_space to store_explored_points." />
     <MESSAGE value="Implementation the flag of gradient descent to switch." />
     <MESSAGE value="Abolition of the getters and setters up to present and implementation of Pythonic getter and setter." />
-    <option name="LAST_COMMIT_MESSAGE" value="Abolition of the getters and setters up to present and implementation of Pythonic getter and setter." />
+    <MESSAGE value="Change the method how to store the individuals for training surrogate function.&#10;1. Change the data type storing individuals for training gaussian process from list to dictionary.&#10;2. Round down to the second decimal place.&#10;3. Store the individuals into multiple dictionary." />
+    <MESSAGE value="Change the kernel to Matern from default." />
+    <option name="LAST_COMMIT_MESSAGE" value="Change the kernel to Matern from default." />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$USER_HOME$/.pyenv/versions/anaconda3-5.1.0/lib/python3.6/site-packages/sklearn/gaussian_process/test.py" />
@@ -605,8 +621,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/optIA.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="607">
-          <caret line="151" column="37" lean-forward="true" selection-start-line="151" selection-start-column="37" selection-end-line="151" selection-end-column="37" />
+        <state relative-caret-position="222">
+          <caret line="306" column="69" lean-forward="true" selection-start-line="306" selection-start-column="69" selection-end-line="306" selection-end-column="69" />
           <folding>
             <element signature="e#24#38#0" expanded="true" />
           </folding>
