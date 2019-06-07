@@ -12,6 +12,8 @@ from collections import OrderedDict
 from scipy.stats import norm
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import ExpSineSquared
+from sklearn.gaussian_process.kernels import RationalQuadratic
+from sklearn.gaussian_process.kernels import Matern
 import deap.tools
 
 logger = logging.getLogger("optIA")
@@ -92,7 +94,7 @@ class OptIA:
                         d])/5*(pos[d]+1)))
 
             if self.SURROGATE_ASSIST:
-                q, mod = divmod(self.generation, 1000)
+                q, mod = divmod(self.generation, 1)
                 if self.generation < 20:
                     #print("Correct update of the GP")
                     self.gp.fit(self.explored_coordinates, self.explored_vals)
@@ -139,12 +141,13 @@ class OptIA:
         self.MAX_AGE = 10
         self.evalcount = 0
         self.generation = 0
-        self.ROUNDIN_NUM_DIGITS = 2
+        self.ROUNDIN_NUM_DIGITS = 12
         self.GENOTYPE_DUP = True
         self.pop = []
         self.clo_pop = []
         self.hyp_pop = []
-        self.gp = GaussianProcessRegressor()
+        self.gp = GaussianProcessRegressor(kernel=1**2 * Matern(
+            length_scale=2, nu=1.5))
         self.fun = fun
         self.target_hit_first = False
         self.LBOUNDS = lbounds
@@ -297,12 +300,9 @@ class OptIA:
             q, mod = divmod(self.generation, 100)
             stock_value = self.explored_coordinates.__len__()
             if self.generation < 50:
-                a = [np.array([i[0],i[1]]).T for i in
-                     self.explored_coordinates]
                 self.explored_coordinates = np.empty((0, self.DIMENSION),
                                                      np.float64)
-                self.explored_vals = np.empty((0, self.DIMENSION),
-                                                     np.float64)
+                self.explored_vals = np.empty((0, self.DIMENSION), np.float64)
                 self.convert_dict_to_array(self.explored_points,
                                            self.explored_coordinates,
                                            self.explored_vals, np.array([]))
@@ -337,12 +337,13 @@ class OptIA:
         for mutated_coordinate, original, val_pred, deviation, in zip(
                 mutated_coordinates, self.clo_pop, vals_pred, deviations):
             if self.SURROGATE_ASSIST:
+                #logger.debug("predicted %s %s", val_pred, deviation)
+                #logger.debug("actual %s", self.fun(mutated_coordinate))
                 if ((np.amin(self.best.val) > np.amin(val_pred)) or (
-                        0.0 != deviation) or
+                        1/(1+20*original.age) < deviation) or
                         self.generation > 50000):
                     #print(deviation)
-                    #logger.debug("predicted %s", mutated_val)
-                    #logger.debug("actual %s", self.fun(mutated_coordinate))
+
                     if self.fun.number_of_constraints > 0:
                         c = self.fun.constraints(mutated_coordinate)
                         if c <= 0:
