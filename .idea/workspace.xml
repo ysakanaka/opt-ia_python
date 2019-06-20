@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e407f3ec-c7a8-4cd7-82b1-a0335155de78" name="Default Changelist" comment="">
+    <list default="true" id="e407f3ec-c7a8-4cd7-82b1-a0335155de78" name="Default Changelist" comment="Turn off the function surrogate was turned off when the length of stored values are over than 500.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/optIA.py" beforeDir="false" afterPath="$PROJECT_DIR$/optIA.py" afterDir="false" />
     </list>
@@ -26,8 +26,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/optIA.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="222">
-              <caret line="306" column="69" lean-forward="true" selection-start-line="306" selection-start-column="69" selection-end-line="306" selection-end-column="69" />
+            <state relative-caret-position="174">
+              <caret line="46" column="17" lean-forward="true" selection-start-line="46" selection-start-column="17" selection-end-line="46" selection-end-column="17" />
               <folding>
                 <element signature="e#24#38#0" expanded="true" />
               </folding>
@@ -47,7 +47,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/plot.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="480">
+            <state relative-caret-position="360">
               <caret line="20" column="34" selection-start-line="20" selection-start-column="34" selection-end-line="20" selection-end-column="34" />
               <folding>
                 <element signature="e#0#12#0" expanded="true" />
@@ -68,7 +68,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/test.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="984">
+            <state relative-caret-position="888">
               <caret line="41" column="25" selection-start-line="41" selection-start-column="25" selection-end-line="41" selection-end-column="25" />
               <folding>
                 <element signature="e#216#234#0" expanded="true" />
@@ -117,6 +117,8 @@
       <find>my_fun</find>
       <find>self.fun</find>
       <find>gp.fit</find>
+      <find>convert</find>
+      <find>DEBUG</find>
     </findStrings>
     <replaceStrings>
       <replace>age</replace>
@@ -146,7 +148,7 @@
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="91" />
+    <option name="x" value="237" />
     <option name="y" value="23" />
     <option name="width" value="1276" />
     <option name="height" value="1018" />
@@ -231,7 +233,8 @@
       <workItem from="1557382526406" duration="67000" />
       <workItem from="1557382613593" duration="146000" />
       <workItem from="1557382858161" duration="47402000" />
-      <workItem from="1559187974246" duration="8727000" />
+      <workItem from="1559187974246" duration="13748000" />
+      <workItem from="1561015957011" duration="3188000" />
     </task>
     <task id="LOCAL-00001" summary="This is first commit.">
       <created>1542869876358</created>
@@ -443,11 +446,18 @@
       <option name="project" value="LOCAL" />
       <updated>1559894808402</updated>
     </task>
-    <option name="localTasksCounter" value="31" />
+    <task id="LOCAL-00031" summary="Turn off the function surrogate was turned off when the length of stored values are over than 500.">
+      <created>1559895835774</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1559895835774</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="212914000" />
+    <option name="totallyTimeSpent" value="221123000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -459,12 +469,12 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="91" y="23" width="1276" height="1018" extended-state="0" />
+    <frame x="237" y="23" width="1276" height="1018" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Structure" order="0" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="1" side_tool="true" />
-      <window_info active="true" content_ui="combo" id="Project" order="2" visible="true" weight="0.17990276" />
+      <window_info active="true" content_ui="combo" id="Project" order="2" visible="true" weight="0.18233387" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" visible="true" weight="0.18791209" />
       <window_info anchor="bottom" id="Run" order="2" />
@@ -515,7 +525,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT" value="true" />
-    <MESSAGE value="Fix bug&#10;&#10;Get multiple variables from multiple list by zip." />
     <MESSAGE value="Implement sklearn (bugs pending)" />
     <MESSAGE value="Bug fix" />
     <MESSAGE value="Comment out" />
@@ -540,7 +549,8 @@
     <MESSAGE value="Abolition of the getters and setters up to present and implementation of Pythonic getter and setter." />
     <MESSAGE value="Change the method how to store the individuals for training surrogate function.&#10;1. Change the data type storing individuals for training gaussian process from list to dictionary.&#10;2. Round down to the second decimal place.&#10;3. Store the individuals into multiple dictionary." />
     <MESSAGE value="Change the kernel to Matern from default." />
-    <option name="LAST_COMMIT_MESSAGE" value="Change the kernel to Matern from default." />
+    <MESSAGE value="Turn off the function surrogate was turned off when the length of stored values are over than 500." />
+    <option name="LAST_COMMIT_MESSAGE" value="Turn off the function surrogate was turned off when the length of stored values are over than 500." />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$USER_HOME$/.pyenv/versions/anaconda3-5.1.0/lib/python3.6/site-packages/sklearn/gaussian_process/test.py" />
@@ -580,7 +590,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/plot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="480">
+        <state relative-caret-position="360">
           <caret line="20" column="34" selection-start-line="20" selection-start-column="34" selection-end-line="20" selection-end-column="34" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
@@ -597,7 +607,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/test.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="984">
+        <state relative-caret-position="888">
           <caret line="41" column="25" selection-start-line="41" selection-start-column="25" selection-end-line="41" selection-end-column="25" />
           <folding>
             <element signature="e#216#234#0" expanded="true" />
@@ -621,8 +631,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/optIA.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="222">
-          <caret line="306" column="69" lean-forward="true" selection-start-line="306" selection-start-column="69" selection-end-line="306" selection-end-column="69" />
+        <state relative-caret-position="174">
+          <caret line="46" column="17" lean-forward="true" selection-start-line="46" selection-start-column="17" selection-end-line="46" selection-end-column="17" />
           <folding>
             <element signature="e#24#38#0" expanded="true" />
           </folding>

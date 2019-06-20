@@ -36,6 +36,40 @@ class OptIA:
                         coordinates, key)], axis=0)
                 self.explored_vals = np.append(self.explored_vals, (d[key]))
 
+    def pickup_values(self, explored_coordinates, explored_vals):
+        clength = len(explored_coordinates)
+        vlength = len(explored_vals)
+        picked_coordinates = np.zeros((1000, len(explored_coordinates[0])))
+        picked_vals = np.zeros(1000)
+        if clength <= 1000:
+            return
+        else:
+            j = 0
+            for i in range(clength):
+                if random.random() < 1000/clength:
+                    picked_coordinates[j] = explored_coordinates[i]
+                    j += 1
+                    if j == 1000:
+                        break
+
+        if vlength <= 1000:
+            pass
+        else:
+            j = 0
+            for i in range(vlength):
+                if random.random() < 1000/vlength:
+                    picked_vals[j] = explored_vals[i]
+                    j += 1
+                    if j == 1000:
+                        break
+
+        self.explored_coordinates = picked_coordinates
+        self.explored_vals = picked_vals
+        return
+
+
+
+
     def add_points_into_dict(self, d, new_coordinate, new_val):
         if new_coordinate[0] in d:
             if len(new_coordinate) == 1:
@@ -297,7 +331,7 @@ class OptIA:
         mutated_coordinates = np.atleast_2d(np.array(mutated_coordinates))
 
         if self.SURROGATE_ASSIST:
-            q, mod = divmod(self.generation, 1)
+            q, mod = divmod(self.generation, 10)
             stock_value = self.explored_coordinates.__len__()
             if self.generation < 20:
                 self.explored_coordinates = np.empty((0, self.DIMENSION),
@@ -306,6 +340,7 @@ class OptIA:
                 self.convert_dict_to_array(self.explored_points,
                                            self.explored_coordinates,
                                            self.explored_vals, np.array([]))
+                self.pickup_values(self.explored_coordinates, self.explored_vals)
                 self.gp.fit(self.explored_coordinates,
                             self.explored_vals.reshape(-1, 1))
                 self.stocked_value = stock_value
@@ -317,6 +352,9 @@ class OptIA:
                 self.convert_dict_to_array(self.explored_points,
                                            self.explored_coordinates,
                                            self.explored_vals, np.array([]))
+                self.pickup_values(self.explored_coordinates,
+                                   self.explored_vals)
+                logger.debug("picked coordinates %s", self.explored_coordinates)
                 self.gp.fit(self.explored_coordinates,
                             self.explored_vals.reshape(-1, 1))
                 self.stocked_value = stock_value
