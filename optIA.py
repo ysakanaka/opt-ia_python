@@ -50,6 +50,8 @@ class OptIA:
                 picked_coordinates[j] = explored_coordinates[i]
                 picked_vals[j] = explored_vals[i]
 
+                j += 1
+
         self.explored_coordinates = picked_coordinates
         self.explored_vals = picked_vals
         return
