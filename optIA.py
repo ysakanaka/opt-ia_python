@@ -38,37 +38,21 @@ class OptIA:
 
     def pickup_values(self, explored_coordinates, explored_vals):
         clength = len(explored_coordinates)
-        vlength = len(explored_vals)
         picked_coordinates = np.zeros((1000, len(explored_coordinates[0])))
         picked_vals = np.zeros(1000)
         if clength <= 1000:
             return
         else:
             j = 0
-            for i in range(clength):
-                if random.random() < 1000/clength:
-                    picked_coordinates[j] = explored_coordinates[i]
-                    j += 1
-                    if j == 1000:
-                        break
-
-        if vlength <= 1000:
-            pass
-        else:
-            j = 0
-            for i in range(vlength):
-                if random.random() < 1000/vlength:
-                    picked_vals[j] = explored_vals[i]
-                    j += 1
-                    if j == 1000:
-                        break
+            indexs = np.random.choice(
+                clength, 1000, replace=False)
+            for i in indexs:
+                picked_coordinates[j] = explored_coordinates[i]
+                picked_vals[j] = explored_vals[i]
 
         self.explored_coordinates = picked_coordinates
         self.explored_vals = picked_vals
         return
-
-
-
 
     def add_points_into_dict(self, d, new_coordinate, new_val):
         if new_coordinate[0] in d:
