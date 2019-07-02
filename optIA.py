@@ -195,9 +195,9 @@ class OptIA:
 
         # TODO Confirm the parameters for sobol_seq
         if self.SOBOL_SEQ_GENERATION:
-            coordinates = norm.ppf(sobol_seq.i4_sobol_generate(
-                self.DIMENSION, self.MAX_POP))*(
-             self.UBOUNDS-self.LBOUNDS)/4
+            coordinates = sobol_seq.i4_sobol_generate(
+                self.DIMENSION, self.MAX_POP)*(
+                    self.UBOUNDS-self.LBOUNDS)+self.LBOUNDS
         else:
             coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
                           np.random.rand(self.MAX_POP, self.DIMENSION)
@@ -297,6 +297,8 @@ class OptIA:
                                 low=self.LBOUNDS.tolist(),
                                 up=self.UBOUNDS.tolist(), indpb=0.8))[0]
                         etalistcount = (etalistcount+1) % 10
+                        #print(self.UBOUNDS.tolist())
+                        #print(self.LBOUNDS.tolist())
                         if(all(0 < x for x in
                                (np.array(mutated_coordinate) - self.LBOUNDS))) \
                                 and (all(0 < y for y

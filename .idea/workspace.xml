@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="e407f3ec-c7a8-4cd7-82b1-a0335155de78" name="Default Changelist" comment="">
+    <list default="true" id="e407f3ec-c7a8-4cd7-82b1-a0335155de78" name="Default Changelist" comment="Bug fix.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/optIA.py" beforeDir="false" afterPath="$PROJECT_DIR$/optIA.py" afterDir="false" />
     </list>
@@ -26,11 +26,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/optIA.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="365">
-              <caret line="46" column="38" lean-forward="true" selection-start-line="46" selection-start-column="38" selection-end-line="46" selection-end-column="38" />
-              <folding>
-                <element signature="e#24#38#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="72">
+              <caret line="3" column="13" lean-forward="true" selection-start-line="3" selection-start-column="13" selection-end-line="3" selection-end-column="13" />
             </state>
           </provider>
         </entry>
@@ -106,7 +103,6 @@
       <find>Are we</find>
       <find>predicted</find>
       <find>SURR</find>
-      <find>print</find>
       <find>self.fun(</find>
       <find>original_coordinates</find>
       <find>Gradient</find>
@@ -120,6 +116,7 @@
       <find>convert</find>
       <find>DEBUG</find>
       <find>fit</find>
+      <find>print</find>
     </findStrings>
     <replaceStrings>
       <replace>age</replace>
@@ -149,7 +146,7 @@
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="137" />
+    <option name="x" value="178" />
     <option name="y" value="23" />
     <option name="width" value="1276" />
     <option name="height" value="1018" />
@@ -235,7 +232,8 @@
       <workItem from="1557382613593" duration="146000" />
       <workItem from="1557382858161" duration="47402000" />
       <workItem from="1559187974246" duration="13748000" />
-      <workItem from="1561015957011" duration="9373000" />
+      <workItem from="1561015957011" duration="11384000" />
+      <workItem from="1561695507829" duration="4192000" />
     </task>
     <task id="LOCAL-00001" summary="This is first commit.">
       <created>1542869876358</created>
@@ -468,11 +466,18 @@
       <option name="project" value="LOCAL" />
       <updated>1561617188986</updated>
     </task>
-    <option name="localTasksCounter" value="34" />
+    <task id="LOCAL-00034" summary="Bug fix.">
+      <created>1561619983474</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1561619983474</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="227308000" />
+    <option name="totallyTimeSpent" value="233511000" />
   </component>
   <component name="TodoView">
     <todo-panel id="selected-file">
@@ -484,12 +489,12 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="24" y="23" width="1276" height="1018" extended-state="0" />
+    <frame x="178" y="23" width="1276" height="1018" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info id="Structure" order="0" side_tool="true" weight="0.25" />
       <window_info id="Favorites" order="1" side_tool="true" />
-      <window_info active="true" content_ui="combo" id="Project" order="2" visible="true" weight="0.18233387" />
+      <window_info active="true" content_ui="combo" id="Project" order="2" visible="true" weight="0.184765" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" visible="true" weight="0.18791209" />
       <window_info anchor="bottom" id="Run" order="2" />
@@ -540,7 +545,6 @@
   </component>
   <component name="VcsManagerConfiguration">
     <option name="CHECK_CODE_CLEANUP_BEFORE_PROJECT_COMMIT" value="true" />
-    <MESSAGE value="Comment out" />
     <MESSAGE value="Clean code.&#10;&#10;Import logging and remove print. Remove unused parts and variables." />
     <MESSAGE value="Add boolean parameters. SURROGATE_ASSIST, RESET_AGE, SEARCHSPACE_ASSIST.&#10;&#10;Implemented switching RESET_AGE, SEARCHSPAECE_ASSIST." />
     <MESSAGE value="ADD the codes about budget system(miss deleted). And removed some extra codes." />
@@ -565,7 +569,8 @@
     <MESSAGE value="Turn off the function surrogate was turned off when the length of stored values are over than 500." />
     <MESSAGE value="Implement pickup values function to solve out of Memory error." />
     <MESSAGE value="Fix bug.&#10;&#10;We should pick up value with correspondence between coordinates and values." />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix bug.&#10;&#10;We should pick up value with correspondence between coordinates and values." />
+    <MESSAGE value="Bug fix." />
+    <option name="LAST_COMMIT_MESSAGE" value="Bug fix." />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$USER_HOME$/.pyenv/versions/anaconda3-5.1.0/lib/python3.6/site-packages/sklearn/gaussian_process/test.py" />
@@ -646,11 +651,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/optIA.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="365">
-          <caret line="46" column="38" lean-forward="true" selection-start-line="46" selection-start-column="38" selection-end-line="46" selection-end-column="38" />
-          <folding>
-            <element signature="e#24#38#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="72">
+          <caret line="3" column="13" lean-forward="true" selection-start-line="3" selection-start-column="13" selection-end-line="3" selection-end-column="13" />
         </state>
       </provider>
     </entry>
