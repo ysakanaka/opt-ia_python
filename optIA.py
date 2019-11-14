@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
+import log
 import random
 import sobol_seq
 import numpy as np
@@ -429,6 +430,8 @@ class OptIA:
         for e in cp:
             self.pop.append(e)
 
+        logger.info("%s", self.generation)
+
         while self.MAX_POP < len(self.pop):
             worst = self.pop[0]
             for c in self.pop:
@@ -480,8 +483,11 @@ class OptIA:
                 self.evalcount += 1
 
     def opt_ia(self, budget):  # TODO Chunk system
+
         logging.basicConfig()
-        logging.getLogger("optIA").setLevel(level=logging.CRITICAL)
+        logging.getLogger("optIA").setLevel(level=logging.DEBUG)
+        logging.root.handlers[0].setFormatter(log.CsvFormatter())
+
         xx, yy = np.meshgrid(np.arange(-5, 5, 0.5), np.arange(-5, 5, 0.5))
         latticePoints = np.c_[xx.ravel(), yy.ravel()]
         # TODO Confirm warnings
