@@ -113,7 +113,7 @@ class OptIA:
                     self.LBOUNDS[d] + (self.UBOUNDS[d] - self.LBOUNDS[
                         d])/5*(pos[d]+1)))
 
-            if self.SURROGATE_ASSIST:
+            if self.MUTATE_SURROGATE_ASSIST:
                 q, mod = divmod(self.generation, 1)
                 if self.generation < 20:
                     #print("Correct update of the GP")
@@ -154,7 +154,7 @@ class OptIA:
 
     def __init__(self, fun, lbounds, ubounds, ra=False,
                  ssa=False,
-                 sua=False, sobol=True, gd=False):
+                 mutate_sua=False, select_sua=False, sobol=True, gd=False):
 
         self.MAX_GENERATION = 1000000000
         self.MAX_POP = 30
@@ -175,7 +175,8 @@ class OptIA:
         self.DIMENSION = len(lbounds)
         self.RESET_AGE = ra
         self.SEARCHSPACE_ASSIST = ssa
-        self.SURROGATE_ASSIST = sua
+        self.MUTATE_SURROGATE_ASSIST = mutate_sua
+        self.SELECT_SURROGATE_ASSIST = select_sua
         self.SOBOL_SEQ_GENERATION = sobol
         self.GRADIENT_DESCENT = gd
         self.MUTATION = OptIA.MUT_POLYNOMIAL_BOUNDED
@@ -318,7 +319,7 @@ class OptIA:
 
         mutated_coordinates = np.atleast_2d(np.array(mutated_coordinates))
 
-        if self.SURROGATE_ASSIST:
+        if self.MUTATE_SURROGATE_ASSIST:
             q, mod = divmod(self.generation, 10)
             stock_value = self.explored_coordinates.__len__()
             if self.generation < 20:
@@ -358,7 +359,7 @@ class OptIA:
         mutated_val = 0
         for mutated_coordinate, original, val_pred, deviation, in zip(
                 mutated_coordinates, self.clo_pop, vals_pred, deviations):
-            if self.SURROGATE_ASSIST:
+            if self.MUTATE_SURROGATE_ASSIST:
                 #logger.debug("predicted %s %s", val_pred, deviation)
                 #logger.debug("actual %s", self.fun(mutated_coordinate))
                 if ((np.amin(self.best.val) > np.amin(val_pred)) or (
@@ -435,17 +436,48 @@ class OptIA:
                     worst = c
             self.pop.remove(worst)
 
-        while self.MAX_POP > len(self.pop):
-            coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
-                          np.random.rand(1, self.DIMENSION)
-            val = None
-            if self.fun.number_of_constraints > 0:
-                c = self.fun.constraints(coordinates)
-                if c <= 0:
-                    val = self.my_fun(coordinates)
-            else:
-                val = self.my_fun(coordinates[0])
-            self.pop.append(cell.Cell(np.array(coordinates[0]), val, 0))
+        if self.SELECT_SURROGATE_ASSIST and self.generation <= 50000:
+            rep_coordinates = []
+            while self.MAX_POP > len(self.pop):
+                coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
+                              np.random.rand(1, self.DIMENSION)
+                rep_coordinates.append(coordinates[0])
+
+            rep_vals_preds, rep_vals_devs = self.gp.predict(rep_coordinates,
+                                                          return_std=True)
+
+            for coordinate, pred_val, deviation in zip(rep_coordinates,
+                                                        rep_vals_preds,
+                                                        rep_vals_devs):
+                val = 0
+                if ((np.amin(self.best.val) > np.amin(pred_val)) or
+                        (0.5 < deviation)):
+                    if self.fun.number_of_constraints > 0:
+                        c = self.fun.constraints(coordinate)
+                        if c <= 0:
+                            val = self.my_fun(coordinate)
+                            self.store_explored_points(coordinate, val)
+                    else:
+                        val = self.my_fun(coordinate)
+                        self.store_explored_points(val, coordinate)
+                    self.pop.append(cell.Cell(np.array(coordinate), val, 0))
+                    self.evalcount += 1
+                else:
+                    self.pop.append(cell.Cell(np.array(coordinate),
+                                              pred_val, 0))
+        else:
+            while self.MAX_POP > len(self.pop):
+                coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
+                              np.random.rand(1, self.DIMENSION)
+                val = None
+                if self.fun.number_of_constraints > 0:
+                    c = self.fun.constraints(coordinates)
+                    if c <= 0:
+                        val = self.my_fun(coordinates)
+                else:
+                    val = self.my_fun(coordinates[0])
+                self.pop.append(cell.Cell(np.array(coordinates[0]), val, 0))
+                self.evalcount += 1
 
     def opt_ia(self, budget):  # TODO Chunk system
         logging.basicConfig()
