@@ -430,7 +430,7 @@ class OptIA:
         for e in cp:
             self.pop.append(e)
 
-        logger.info("%s", self.generation)
+        logger.info(self.generation)
 
         while self.MAX_POP < len(self.pop):
             worst = self.pop[0]
@@ -484,9 +484,10 @@ class OptIA:
 
     def opt_ia(self, budget):  # TODO Chunk system
 
-        logging.basicConfig()
+        logging.basicConfig(filename='example.log', filemode='w')
+        # TODO modify before experiment
         logging.getLogger("optIA").setLevel(level=logging.DEBUG)
-        logging.root.handlers[0].setFormatter(log.CsvFormatter())
+        #logging.root.handlers[0].setFormatter(log.CsvFormatter())
 
         xx, yy = np.meshgrid(np.arange(-5, 5, 0.5), np.arange(-5, 5, 0.5))
         latticePoints = np.c_[xx.ravel(), yy.ravel()]
