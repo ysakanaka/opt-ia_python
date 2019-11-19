@@ -446,7 +446,6 @@ class OptIA:
             else:
                 val = self.my_fun(coordinates[0])
             self.pop.append(cell.Cell(np.array(coordinates[0]), val, 0))
-            self.evalcount += 1
 
     def opt_ia(self, budget):  # TODO Chunk system
         logging.basicConfig()
