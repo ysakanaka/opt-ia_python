@@ -486,7 +486,7 @@ class OptIA:
 
         logging.basicConfig(filename='example.log', filemode='w')
         # TODO modify before experiment
-        logging.getLogger("optIA").setLevel(level=logging.DEBUG)
+        logging.getLogger("optIA").setLevel(level=logging.INFO)
         #logging.root.handlers[0].setFormatter(log.CsvFormatter())
 
         xx, yy = np.meshgrid(np.arange(-5, 5, 0.5), np.arange(-5, 5, 0.5))
