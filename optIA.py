@@ -8,6 +8,7 @@ import numpy as np
 import copy
 import cell
 import plot
+import csv
 
 from collections import OrderedDict
 from scipy.stats import norm
@@ -161,6 +162,7 @@ class OptIA:
         self.MAX_POP = 30
         self.MAX_AGE = 10
         self.evalcount = 0
+        self.pre_evalcount = 0
         self.generation = 0
         self.ROUNDIN_NUM_DIGITS = 12
         self.GENOTYPE_DUP = True
@@ -194,6 +196,7 @@ class OptIA:
         self.stocked_value = 0
         self.predicted_coordinates = []
         self.predicted_vals = []
+        self.logData = {}
 
         # TODO Confirm the parameters for sobol_seq
         if self.SOBOL_SEQ_GENERATION:
@@ -430,7 +433,7 @@ class OptIA:
         for e in cp:
             self.pop.append(e)
 
-        logger.info(self.generation)
+        self.logData["surplus_at_select"] = len(self.pop) - self.MAX_POP
 
         while self.MAX_POP < len(self.pop):
             worst = self.pop[0]
@@ -464,7 +467,6 @@ class OptIA:
                         val = self.my_fun(coordinate)
                         self.store_explored_points(val, coordinate)
                     self.pop.append(cell.Cell(np.array(coordinate), val, 0))
-                    self.evalcount += 1
                 else:
                     self.pop.append(cell.Cell(np.array(coordinate),
                                               pred_val, 0))
@@ -480,14 +482,19 @@ class OptIA:
                 else:
                     val = self.my_fun(coordinates[0])
                 self.pop.append(cell.Cell(np.array(coordinates[0]), val, 0))
-                self.evalcount += 1
+
 
     def opt_ia(self, budget):  # TODO Chunk system
 
-        logging.basicConfig(filename='example.log', filemode='w')
+        logging.basicConfig(filename="logdata.csv", filemode="w")
+        with open("logdata.csv", 'w') as f:
+            writer = csv.writer(f)
+            writer.writerow(['generation', 'surplus_at_select'])
         # TODO modify before experiment
         logging.getLogger("optIA").setLevel(level=logging.INFO)
-        #logging.root.handlers[0].setFormatter(log.CsvFormatter())
+        logging.root.handlers[0].setFormatter(log.CsvFormatter())
+
+
 
         xx, yy = np.meshgrid(np.arange(-5, 5, 0.5), np.arange(-5, 5, 0.5))
         latticePoints = np.c_[xx.ravel(), yy.ravel()]
@@ -497,6 +504,7 @@ class OptIA:
         logger.debug('budget is %s', budget)
         myplot = plot.Plot()
         while budget > 0 and not self.fun.final_target_hit:
+            #self.logData = {}
             logger.debug('Generation at loop start is %s', self.generation)
             logger.debug('Generation at loop start is %s', self.generation)
             if self.generation % 100 == 0 and False:
@@ -570,6 +578,9 @@ class OptIA:
                 logger.debug('generation is %s', self.generation)
                 logger.debug(self.all_best_generation)
             logger.debug('Generation at end of loop is %s', self.generation)
+
+            self.logData["generation"] = self.generation
+            logger.info("INFO log", extra=dict(self.logData))
 
 
 
