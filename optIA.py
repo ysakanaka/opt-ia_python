@@ -490,6 +490,20 @@ class OptIA:
             writer = csv.writer(f)
             writer.writerow([self.generation, self.logData["surplus_at_select"]])
 
+        with open("data2/stored_coordinates" + self.fun.id+".csv", 'a') as f:
+            writer = csv.writer(f)
+            coordinates = np.empty((0, self.DIMENSION),
+                                                 np.float64)
+            values = np.empty((0, self.DIMENSION),
+                                          np.float64)
+            #for key, value in self.explored_points.items():
+                #row.append([key, value])
+            self.convert_dict_to_array(self.explored_points, coordinates,
+                                       values, np.array([]))
+            writer.writerow([self.generation, self.explored_points])
+            writer.writerow([self.generation, self.explored_coordinates,
+                             self.explored_vals])
+
     def opt_ia(self, budget):  # TODO Chunk system
         logging.basicConfig(filename="data/logging.csv",
                                      filemode="w")
@@ -498,6 +512,8 @@ class OptIA:
             with open("data/info" + self.fun.id + ".csv", 'w') as f:
                 writer = csv.writer(f)
                 writer.writerow(['generation', 'surplus_at_select'])
+
+
 
         # TODO modify before experiment
         logging.getLogger("optIA").setLevel(level=logging.CRITICAL)
