@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import logging
-import log
+#import log
 import random
 import sobol_seq
 import numpy as np
@@ -197,6 +197,7 @@ class OptIA:
         self.predicted_coordinates = []
         self.predicted_vals = []
         self.logData = {}
+        self.CSV_SELF_LOGGER = True
 
         # TODO Confirm the parameters for sobol_seq
         if self.SOBOL_SEQ_GENERATION:
@@ -434,7 +435,7 @@ class OptIA:
             self.pop.append(e)
 
         self.logData["surplus_at_select"] = len(self.pop) - self.MAX_POP
-        logger.info(self.logData["surplus_at_select"])
+
 
         while self.MAX_POP < len(self.pop):
             worst = self.pop[0]
@@ -484,23 +485,23 @@ class OptIA:
                     val = self.my_fun(coordinates[0])
                 self.pop.append(cell.Cell(np.array(coordinates[0]), val, 0))
 
-    #def finish(self):
-     #   with open("logdata.csv", mode="r+") as f:
-
-
+    def csv_logger(self):
+        with open("data/info" + self.fun.id+".csv", 'a') as f:
+            writer = csv.writer(f)
+            writer.writerow([self.generation, self.logData["surplus_at_select"]])
 
     def opt_ia(self, budget):  # TODO Chunk system
+        logging.basicConfig(filename="data/logging.csv",
+                                     filemode="w")
 
-        logging.basicConfig(filename="logdata.csv", filemode="w")
-        #with open("logdata.csv", 'w') as f:
-            #writer = csv.writer(f)
-            #writer.writerow(['generation', 'surplus_at_select'])
+        if self.CSV_SELF_LOGGER:
+            with open("data/info" + self.fun.id + ".csv", 'w') as f:
+                writer = csv.writer(f)
+                writer.writerow(['generation', 'surplus_at_select'])
+
         # TODO modify before experiment
-        logging.getLogger("optIA").setLevel(level=logging.INFO)
-        logging.root.handlers[0].setFormatter(log.CsvFormatter())
-        logger.info("generation,surplus_at_select")
-
-
+        logging.getLogger("optIA").setLevel(level=logging.CRITICAL)
+        #logging.root.handlers[0].setFormatter(log.CsvFormatter())
 
         xx, yy = np.meshgrid(np.arange(-5, 5, 0.5), np.arange(-5, 5, 0.5))
         latticePoints = np.c_[xx.ravel(), yy.ravel()]
@@ -585,10 +586,8 @@ class OptIA:
                 logger.debug(self.all_best_generation)
             logger.debug('Generation at end of loop is %s', self.generation)
 
-            self.logData["generation"] = self.generation
-            #logger.info("INFO log", extra=dict(self.logData))
-
-
+            if self.CSV_SELF_LOGGER:
+                self.csv_logger()
 
 
         return self.all_best.coordinates
