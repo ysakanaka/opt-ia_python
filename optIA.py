@@ -434,6 +434,7 @@ class OptIA:
             self.pop.append(e)
 
         self.logData["surplus_at_select"] = len(self.pop) - self.MAX_POP
+        logger.info("test")
 
         while self.MAX_POP < len(self.pop):
             worst = self.pop[0]
@@ -580,7 +581,7 @@ class OptIA:
             logger.debug('Generation at end of loop is %s', self.generation)
 
             self.logData["generation"] = self.generation
-            logger.info("INFO log", extra=dict(self.logData))
+            #logger.info("INFO log", extra=dict(self.logData))
 
 
 
