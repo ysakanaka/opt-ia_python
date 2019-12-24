@@ -434,7 +434,7 @@ class OptIA:
             self.pop.append(e)
 
         self.logData["surplus_at_select"] = len(self.pop) - self.MAX_POP
-        logger.info("test")
+        logger.info(self.logData["surplus_at_select"])
 
         while self.MAX_POP < len(self.pop):
             worst = self.pop[0]
@@ -484,16 +484,21 @@ class OptIA:
                     val = self.my_fun(coordinates[0])
                 self.pop.append(cell.Cell(np.array(coordinates[0]), val, 0))
 
+    #def finish(self):
+     #   with open("logdata.csv", mode="r+") as f:
+
+
 
     def opt_ia(self, budget):  # TODO Chunk system
 
         logging.basicConfig(filename="logdata.csv", filemode="w")
-        with open("logdata.csv", 'w') as f:
-            writer = csv.writer(f)
-            writer.writerow(['generation', 'surplus_at_select'])
+        #with open("logdata.csv", 'w') as f:
+            #writer = csv.writer(f)
+            #writer.writerow(['generation', 'surplus_at_select'])
         # TODO modify before experiment
         logging.getLogger("optIA").setLevel(level=logging.INFO)
         logging.root.handlers[0].setFormatter(log.CsvFormatter())
+        logger.info("generation,surplus_at_select")
 
 
 

@@ -7,7 +7,7 @@ class CsvFormatter(logging.Formatter):
     def __init__(self):
         super().__init__()
         self.output = io.StringIO()
-        self.writer = csv.writer(self.output, quoting=csv.QUOTE_ALL)
+        self.writer = csv.writer(self.output, quoting=csv.QUOTE_NONNUMERIC)
 
     def format(self, record):
         self.writer.writerow([record.msg])
