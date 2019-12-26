@@ -486,23 +486,22 @@ class OptIA:
                 self.pop.append(cell.Cell(np.array(coordinates[0]), val, 0))
 
     def csv_logger(self):
-        with open("data/info" + self.fun.id+".csv", 'a') as f:
+        with open("info_data/info" + self.fun.id+".csv", 'a') as f:
             writer = csv.writer(f)
             writer.writerow([self.generation, self.logData["surplus_at_select"]])
 
-        with open("data2/stored_coordinates" + self.fun.id+".csv", 'a') as f:
+        with open("store_data/stored_coordinates" + self.fun.id+".csv",
+                  'a') as f:
             writer = csv.writer(f)
-            coordinates = np.empty((0, self.DIMENSION),
-                                                 np.float64)
-            values = np.empty((0, self.DIMENSION),
-                                          np.float64)
             #for key, value in self.explored_points.items():
                 #row.append([key, value])
-            self.convert_dict_to_array(self.explored_points, coordinates,
-                                       values, np.array([]))
-            writer.writerow([self.generation, self.explored_points])
-            writer.writerow([self.generation, self.explored_coordinates,
-                             self.explored_vals])
+            writer.writerow([self.generation, self.explored_coordinates])
+            writer.writerow([self.generation, self.explored_vals])
+
+        with open("individual_data/individuals" + self.fun.id+".csv",
+                  'a') as f:
+            writer = csv.writer(f)
+
 
     def opt_ia(self, budget):  # TODO Chunk system
         logging.basicConfig(filename="data/logging.csv",
