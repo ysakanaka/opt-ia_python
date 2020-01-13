@@ -197,7 +197,7 @@ class OptIA:
         self.predicted_coordinates = []
         self.predicted_vals = []
         self.logData = {}
-        self.CSV_SELF_LOGGER = True
+        self.CSV_SELF_LOGGER = False
 
         # TODO Confirm the parameters for sobol_seq
         if self.SOBOL_SEQ_GENERATION:
@@ -444,13 +444,13 @@ class OptIA:
                     worst = c
             self.pop.remove(worst)
 
-        if self.SELECT_SURROGATE_ASSIST and self.generation <= 50000:
+        if self.SELECT_SURROGATE_ASSIST and self.generation <= 50000 and \
+                self.MAX_POP > len(self.pop):
             rep_coordinates = []
             while self.MAX_POP > len(self.pop):
                 coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
                               np.random.rand(1, self.DIMENSION)
-                rep_coordinates.append(coordinates[0])
-
+                rep_coordinates.append(coordinates)
             rep_vals_preds, rep_vals_devs = self.gp.predict(rep_coordinates,
                                                           return_std=True)
 
