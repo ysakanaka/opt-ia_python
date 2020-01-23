@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
 import logging
+#import log
 import random
 import sobol_seq
 import numpy as np
 import copy
 import cell
 import plot
+import csv
 
 from collections import OrderedDict
 from scipy.stats import norm
@@ -113,7 +115,7 @@ class OptIA:
                     self.LBOUNDS[d] + (self.UBOUNDS[d] - self.LBOUNDS[
                         d])/5*(pos[d]+1)))
 
-            if self.SURROGATE_ASSIST:
+            if self.MUTATE_SURROGATE_ASSIST:
                 q, mod = divmod(self.generation, 1)
                 if self.generation < 20:
                     #print("Correct update of the GP")
@@ -154,12 +156,13 @@ class OptIA:
 
     def __init__(self, fun, lbounds, ubounds, ra=False,
                  ssa=False,
-                 sua=False, sobol=True, gd=False):
+                 mutate_sua=False, select_sua=False, sobol=True, gd=False):
 
         self.MAX_GENERATION = 1000000000
         self.MAX_POP = 30
         self.MAX_AGE = 10
         self.evalcount = 0
+        self.pre_evalcount = 0
         self.generation = 0
         self.ROUNDIN_NUM_DIGITS = 12
         self.GENOTYPE_DUP = True
@@ -175,7 +178,8 @@ class OptIA:
         self.DIMENSION = len(lbounds)
         self.RESET_AGE = ra
         self.SEARCHSPACE_ASSIST = ssa
-        self.SURROGATE_ASSIST = sua
+        self.MUTATE_SURROGATE_ASSIST = mutate_sua
+        self.SELECT_SURROGATE_ASSIST = select_sua
         self.SOBOL_SEQ_GENERATION = sobol
         self.GRADIENT_DESCENT = gd
         self.MUTATION = OptIA.MUT_POLYNOMIAL_BOUNDED
@@ -192,6 +196,8 @@ class OptIA:
         self.stocked_value = 0
         self.predicted_coordinates = []
         self.predicted_vals = []
+        self.logData = {}
+        self.CSV_SELF_LOGGER = False
 
         # TODO Confirm the parameters for sobol_seq
         if self.SOBOL_SEQ_GENERATION:
@@ -318,7 +324,7 @@ class OptIA:
 
         mutated_coordinates = np.atleast_2d(np.array(mutated_coordinates))
 
-        if self.SURROGATE_ASSIST:
+        if self.MUTATE_SURROGATE_ASSIST:
             q, mod = divmod(self.generation, 10)
             stock_value = self.explored_coordinates.__len__()
             if self.generation < 20:
@@ -358,7 +364,7 @@ class OptIA:
         mutated_val = 0
         for mutated_coordinate, original, val_pred, deviation, in zip(
                 mutated_coordinates, self.clo_pop, vals_pred, deviations):
-            if self.SURROGATE_ASSIST:
+            if self.MUTATE_SURROGATE_ASSIST:
                 #logger.debug("predicted %s %s", val_pred, deviation)
                 #logger.debug("actual %s", self.fun(mutated_coordinate))
                 if ((np.amin(self.best.val) > np.amin(val_pred)) or (
@@ -428,6 +434,9 @@ class OptIA:
         for e in cp:
             self.pop.append(e)
 
+        self.logData["surplus_at_select"] = len(self.pop) - self.MAX_POP
+
+
         while self.MAX_POP < len(self.pop):
             worst = self.pop[0]
             for c in self.pop:
@@ -435,21 +444,80 @@ class OptIA:
                     worst = c
             self.pop.remove(worst)
 
-        while self.MAX_POP > len(self.pop):
-            coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
-                          np.random.rand(1, self.DIMENSION)
-            val = None
-            if self.fun.number_of_constraints > 0:
-                c = self.fun.constraints(coordinates)
-                if c <= 0:
-                    val = self.my_fun(coordinates)
-            else:
-                val = self.my_fun(coordinates[0])
-            self.pop.append(cell.Cell(np.array(coordinates[0]), val, 0))
+        if self.SELECT_SURROGATE_ASSIST and self.generation <= 50000 and \
+                self.MAX_POP > len(self.pop):
+            rep_coordinates = []
+            while self.MAX_POP > len(self.pop):
+                coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
+                              np.random.rand(1, self.DIMENSION)
+                rep_coordinates.append(coordinates)
+            rep_vals_preds, rep_vals_devs = self.gp.predict(rep_coordinates,
+                                                          return_std=True)
+
+            for coordinate, pred_val, deviation in zip(rep_coordinates,
+                                                        rep_vals_preds,
+                                                        rep_vals_devs):
+                val = 0
+                if ((np.amin(self.best.val) > np.amin(pred_val)) or
+                        (0.5 < deviation)):
+                    if self.fun.number_of_constraints > 0:
+                        c = self.fun.constraints(coordinate)
+                        if c <= 0:
+                            val = self.my_fun(coordinate)
+                            self.store_explored_points(coordinate, val)
+                    else:
+                        val = self.my_fun(coordinate)
+                        self.store_explored_points(val, coordinate)
+                    self.pop.append(cell.Cell(np.array(coordinate), val, 0))
+                else:
+                    self.pop.append(cell.Cell(np.array(coordinate),
+                                              pred_val, 0))
+        else:
+            while self.MAX_POP > len(self.pop):
+                coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
+                              np.random.rand(1, self.DIMENSION)
+                val = None
+                if self.fun.number_of_constraints > 0:
+                    c = self.fun.constraints(coordinates)
+                    if c <= 0:
+                        val = self.my_fun(coordinates)
+                else:
+                    val = self.my_fun(coordinates[0])
+                self.pop.append(cell.Cell(np.array(coordinates[0]), val, 0))
+
+    def csv_logger(self):
+        with open("info_data/info" + self.fun.id+".csv", 'a') as f:
+            writer = csv.writer(f)
+            writer.writerow([self.generation, self.logData["surplus_at_select"]])
+
+        with open("store_data/stored_coordinates" + self.fun.id+".csv",
+                  'a') as f:
+            writer = csv.writer(f)
+            #for key, value in self.explored_points.items():
+                #row.append([key, value])
+            writer.writerow([self.generation, self.explored_coordinates])
+            writer.writerow([self.generation, self.explored_vals])
+
+        with open("individual_data/individuals" + self.fun.id+".csv",
+                  'a') as f:
+            writer = csv.writer(f)
+
 
     def opt_ia(self, budget):  # TODO Chunk system
-        logging.basicConfig()
+        logging.basicConfig(filename="data/logging.csv",
+                                     filemode="w")
+
+        if self.CSV_SELF_LOGGER:
+            with open("data/info" + self.fun.id + ".csv", 'w') as f:
+                writer = csv.writer(f)
+                writer.writerow(['generation', 'surplus_at_select'])
+
+
+
+        # TODO modify before experiment
         logging.getLogger("optIA").setLevel(level=logging.CRITICAL)
+        #logging.root.handlers[0].setFormatter(log.CsvFormatter())
+
         xx, yy = np.meshgrid(np.arange(-5, 5, 0.5), np.arange(-5, 5, 0.5))
         latticePoints = np.c_[xx.ravel(), yy.ravel()]
         # TODO Confirm warnings
@@ -458,6 +526,7 @@ class OptIA:
         logger.debug('budget is %s', budget)
         myplot = plot.Plot()
         while budget > 0 and not self.fun.final_target_hit:
+            #self.logData = {}
             logger.debug('Generation at loop start is %s', self.generation)
             logger.debug('Generation at loop start is %s', self.generation)
             if self.generation % 100 == 0 and False:
@@ -532,7 +601,8 @@ class OptIA:
                 logger.debug(self.all_best_generation)
             logger.debug('Generation at end of loop is %s', self.generation)
 
-
+            if self.CSV_SELF_LOGGER:
+                self.csv_logger()
 
 
         return self.all_best.coordinates
