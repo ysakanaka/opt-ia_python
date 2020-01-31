@@ -158,7 +158,6 @@ class OptIA:
                  ssa=False,
                  mutate_sua=False, select_sua=False, sobol=True, gd=False):
 
-        self.MAX_GENERATION = 1000000000
         self.MAX_POP = 30
         self.MAX_AGE = 10
         self.evalcount = 0
