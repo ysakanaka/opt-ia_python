@@ -198,11 +198,14 @@ class OptIA:
         self.logData = {}
         self.CSV_SELF_LOGGER = False
 
-        # TODO Confirm the parameters for sobol_seq
+        self.generate_initial_population()
+        self.best = copy.deepcopy(self.pop[0])
+
+    def generate_initial_population(self):
         if self.SOBOL_SEQ_GENERATION:
             coordinates = sobol_seq.i4_sobol_generate(
-                self.DIMENSION, self.MAX_POP)*(
-                    self.UBOUNDS-self.LBOUNDS)+self.LBOUNDS
+                self.DIMENSION, self.MAX_POP) * (
+                                  self.UBOUNDS - self.LBOUNDS) + self.LBOUNDS
         else:
             coordinates = self.LBOUNDS + (self.UBOUNDS - self.LBOUNDS) * \
                           np.random.rand(self.MAX_POP, self.DIMENSION)
@@ -218,8 +221,6 @@ class OptIA:
                 val = self.my_fun(coordinate)
             self.pop.append(cell.Cell(coordinate.copy(), val.copy(), 0))
             self.store_explored_points(coordinate.copy(), val.copy())
-
-        self.best = copy.deepcopy(self.pop[0])
 
     def calculate_gradient(self, x):
         h = 1e-4
